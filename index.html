@@ -274,8 +274,8 @@
       background: #e8eaed;
     }
     
-    /* Hidden file input */
-    #fileInput {
+    /* Hidden file inputs */
+    #fileInput, #cameraInput {
       display: none;
     }
     
@@ -335,6 +335,11 @@
     .status.error {
       background: #fce8e6;
       color: #c5221f;
+    }
+    
+    .status.info {
+      background: #fff3e0;
+      color: #e65100;
     }
     
     .status-icon {
@@ -487,9 +492,27 @@
       margin-top: 8px;
       font-family: monospace;
       display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
     
     .debug-info.show {
+      display: block;
+    }
+
+    /* Export info */
+    .export-info {
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: #1565c0;
+      display: none;
+    }
+
+    .export-info.show {
       display: block;
     }
   </style>
@@ -536,7 +559,7 @@
         <div class="section-title">2. Loại khách</div>
         <div class="toggle-group">
           <button class="toggle-btn active" data-guest="vn">🇻🇳 Việt Nam</button>
-          <button class="toggle-btn" data-guest="foreign">🌍 Nước ngoài</button>
+          <button class="toggle-btn" data-guest="foreign">🌐 Nước ngoài</button>
         </div>
       </div>
       
@@ -595,7 +618,7 @@
           
           <div class="camera-buttons">
             <button class="btn-camera" id="btnCamera">
-              <span>📸</span> Mở Camera
+              <span>📸</span> Chụp ảnh
             </button>
             <button class="btn-gallery" id="btnGallery">
               <span>🖼️</span> Thư viện
@@ -605,8 +628,11 @@
             </button>
           </div>
           
-          <!-- Hidden file input for gallery -->
-          <input type="file" id="fileInput" accept="image/*" capture="environment">
+          <!-- Hidden file input for gallery - ĐÃ BỎ capture để mở thư viện thực sự -->
+          <input type="file" id="fileInput" accept="image/*">
+          
+          <!-- Hidden file input for camera on mobile -->
+          <input type="file" id="cameraInput" accept="image/*" capture="environment">
           
           <!-- Debug info -->
           <div id="debugInfo" class="debug-info"></div>
@@ -632,13 +658,22 @@
           ➕ Check-in khách mới
         </button>
         <button class="btn-quick" id="btnExportASM">
-          📤 Xuất ASM
+          📤 Xuất ASM hôm nay
         </button>
+      </div>
+
+      <!-- Export Info -->
+      <div class="export-info" id="exportInfo">
+        <strong>💡 Hướng dẫn xuất ASM:</strong><br>
+        1. Nhấn "Xuất ASM hôm nay" để tạo sheet ASM_Export<br>
+        2. Mở Google Sheet → Tab "ASM_Export"<br>
+        3. File → Download → Microsoft Excel (.xlsx)<br>
+        4. Import file vào hệ thống ASM Công an
       </div>
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.1 ASM<br>
+      Light Hotel © 2025 | Version 2.2 ASM<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -661,6 +696,7 @@
     let capturedImage = null;
     let stream = null;
     let cameraActive = false;
+    let isMobile = false;
     
     // ========== ELEMENTS ==========
     const video = document.getElementById('video');
@@ -673,25 +709,44 @@
     const btnRetake = document.getElementById('btnRetake');
     const btnSubmit = document.getElementById('btnSubmit');
     const fileInput = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
     const statusEl = document.getElementById('status');
     const resultCard = document.getElementById('resultCard');
     const resultContent = document.getElementById('resultContent');
     const vnExtraFields = document.getElementById('vnExtraFields');
     const debugInfo = document.getElementById('debugInfo');
+    const exportInfo = document.getElementById('exportInfo');
+    
+    // ========== DETECT DEVICE ==========
+    function detectDevice() {
+      const ua = navigator.userAgent;
+      isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      return isMobile;
+    }
     
     // ========== DEBUG ==========
     function debug(message) {
       if (DEBUG_MODE) {
         console.log('[DEBUG]', message);
         const timestamp = new Date().toLocaleTimeString();
-        debugInfo.innerHTML = `[${timestamp}] ${message}`;
+        const currentText = debugInfo.innerHTML;
+        // Giữ 5 dòng log gần nhất
+        const lines = currentText.split('\n').slice(-4);
+        lines.push(`[${timestamp}] ${message}`);
+        debugInfo.innerHTML = lines.join('\n');
         debugInfo.classList.add('show');
       }
     }
     
-    // ========== CAMERA ==========
-    async function startCamera() {
-      debug('Đang khởi động camera...');
+    // ========== CAMERA - MOBILE: Dùng input capture ==========
+    function openCameraOnMobile() {
+      debug('Mobile: Mở camera qua input capture');
+      cameraInput.click();
+    }
+    
+    // ========== CAMERA - DESKTOP: Dùng getUserMedia ==========
+    async function startCameraOnDesktop() {
+      debug('Desktop: Đang khởi động camera stream...');
       cameraError.classList.remove('show');
       
       // Kiểm tra hỗ trợ
@@ -705,7 +760,6 @@
         // Dừng stream cũ nếu có
         stopCamera();
         
-        // Thử camera sau (environment) trước
         const constraints = {
           video: {
             facingMode: { ideal: 'environment' },
@@ -715,7 +769,7 @@
           audio: false
         };
         
-        debug('Requesting camera với constraints: ' + JSON.stringify(constraints.video.facingMode));
+        debug('Requesting camera...');
         
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         
@@ -730,22 +784,22 @@
             resolve();
           };
           video.onerror = (e) => {
-            debug('Video error: ' + e.message);
+            debug('Video error: ' + (e.message || 'unknown'));
             reject(e);
           };
           setTimeout(() => reject(new Error('Video load timeout')), 5000);
         });
         
         await video.play();
-        debug('Video đang phát, kích thước: ' + video.videoWidth + 'x' + video.videoHeight);
+        debug(`Video đang phát: ${video.videoWidth}x${video.videoHeight}`);
         
         // Hiển thị video
         video.style.display = 'block';
         preview.style.display = 'none';
         placeholder.style.display = 'none';
         
-        // Đổi nút
-        btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+        // Đổi nút thành "Chụp"
+        btnCamera.innerHTML = '<span>📸</span> CHỤP';
         btnCamera.onclick = captureFromCamera;
         btnGallery.style.display = 'none';
         btnRetake.style.display = 'none';
@@ -772,11 +826,7 @@
             break;
           case 'OverconstrainedError':
             errorMessage = 'Camera không hỗ trợ. Đang thử camera khác...';
-            // Thử lại với constraints đơn giản hơn
             return await startCameraFallback();
-          case 'AbortError':
-            errorMessage = 'Camera bị hủy. Vui lòng thử lại.';
-            break;
           default:
             errorMessage = `Lỗi camera: ${err.message}. Vui lòng dùng nút "Thư viện" để chọn ảnh.`;
         }
@@ -799,7 +849,7 @@
         preview.style.display = 'none';
         placeholder.style.display = 'none';
         
-        btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+        btnCamera.innerHTML = '<span>📸</span> CHỤP';
         btnCamera.onclick = captureFromCamera;
         btnGallery.style.display = 'none';
         
@@ -835,16 +885,24 @@
     function captureFromCamera() {
       if (!cameraActive) {
         debug('Camera không active, không thể chụp');
+        showCameraError('Camera chưa sẵn sàng. Vui lòng thử lại.');
         return;
       }
       
-      debug('Chụp ảnh từ camera...');
+      debug('Chụp ảnh từ camera stream...');
       
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
+      // Kiểm tra video dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        debug('Video dimensions = 0, waiting...');
+        showCameraError('Camera chưa sẵn sàng. Vui lòng đợi 1-2 giây rồi thử lại.');
+        return;
+      }
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       capturedImage = canvas.toDataURL('image/jpeg', 0.85);
       debug('Ảnh đã chụp, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
@@ -863,7 +921,9 @@
       btnGallery.style.display = 'none';
       btnRetake.style.display = 'flex';
       
+      cameraError.classList.remove('show');
       updateSubmitButton();
+      debug('Hiển thị preview ảnh');
     }
     
     function resetCamera() {
@@ -874,17 +934,19 @@
       video.style.display = 'none';
       placeholder.style.display = 'flex';
       
-      btnCamera.innerHTML = '<span>📸</span> Mở Camera';
-      btnCamera.onclick = startCamera;
+      btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+      // Reset onclick dựa trên device
+      btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
       btnCamera.style.display = 'flex';
       btnGallery.style.display = 'flex';
       btnRetake.style.display = 'none';
       
       cameraError.classList.remove('show');
       updateSubmitButton();
+      debug('Reset camera UI');
     }
     
-    // ========== FILE INPUT (Gallery) ==========
+    // ========== FILE INPUT (Gallery) - Không có capture ==========
     function openGallery() {
       debug('Mở thư viện ảnh...');
       fileInput.click();
@@ -922,6 +984,15 @@
         debug('FileReader error');
       };
       reader.readAsDataURL(file);
+      
+      // Reset input để có thể chọn lại cùng file
+      e.target.value = '';
+    }
+    
+    // ========== CAMERA INPUT (Mobile camera capture) ==========
+    function handleCameraCapture(e) {
+      debug('Xử lý ảnh từ camera mobile...');
+      handleFileSelect(e);
     }
     
     // ========== ROOM SELECTION ==========
@@ -968,8 +1039,7 @@
     function updateSubmitButton() {
       const canSubmit = selectedRoom && capturedImage;
       btnSubmit.disabled = !canSubmit;
-      debug('Submit button: ' + (canSubmit ? 'enabled' : 'disabled') + 
-            ' (room: ' + !!selectedRoom + ', image: ' + !!capturedImage + ')');
+      debug('Submit button: ' + (canSubmit ? 'enabled' : 'disabled'));
     }
     
     // ========== STATUS ==========
@@ -977,7 +1047,8 @@
       const icons = {
         loading: '<div class="spinner"></div>',
         success: '✅',
-        error: '❌'
+        error: '❌',
+        info: '💡'
       };
       
       statusEl.className = `status show ${type}`;
@@ -1010,7 +1081,7 @@
       showStatus('loading', 'Đang xử lý...', 'Đang đọc thông tin từ giấy tờ');
       resultCard.classList.remove('show');
       
-      debug('Đang gửi request đến: ' + APPS_SCRIPT_URL);
+      debug('Đang gửi request...');
       
       try {
         const requestBody = {
@@ -1024,7 +1095,7 @@
           phone: document.getElementById('phone').value
         };
         
-        debug('Request body size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
+        debug('Request size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
         
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -1037,7 +1108,7 @@
         debug('Response status: ' + response.status);
         
         const result = await response.json();
-        debug('Response: ' + JSON.stringify(result).substring(0, 200));
+        debug('Response received');
         
         if (result.success) {
           const info = result.data.info;
@@ -1120,9 +1191,13 @@
       
       hideStatus();
       resultCard.classList.remove('show');
+      exportInfo.classList.remove('show');
       resetCamera();
       
-      debug('Form đã reset');
+      // Scroll lên đầu
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      debug('Form đã reset cho khách mới');
     }
     
     async function exportASM() {
@@ -1131,7 +1206,7 @@
         return;
       }
       
-      showStatus('loading', 'Đang xuất...', 'Đang tạo file ASM Export');
+      showStatus('loading', 'Đang xuất...', 'Đang tạo file ASM Export từ dữ liệu hôm nay');
       
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -1142,9 +1217,11 @@
         const result = await response.json();
         
         if (result.success) {
-          showStatus('success', 'Xuất thành công!', result.data.message + '. Mở Google Sheet để tải file.');
+          showStatus('success', 'Xuất thành công!', `Đã xuất ${result.data.count} khách vào tab "ASM_Export"`);
+          exportInfo.classList.add('show');
         } else {
-          showStatus('error', 'Lỗi xuất', result.error || result.data?.message || 'Không có dữ liệu');
+          const errorMsg = result.error || result.data?.message || 'Không có dữ liệu check-in hôm nay';
+          showStatus('info', 'Thông báo', errorMsg);
         }
       } catch (error) {
         showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
@@ -1160,17 +1237,32 @@
     }
     
     // ========== EVENT LISTENERS ==========
-    btnCamera.addEventListener('click', startCamera);
+    // Camera button - behavior depends on device
+    btnCamera.addEventListener('click', function() {
+      if (isMobile) {
+        openCameraOnMobile();
+      } else {
+        startCameraOnDesktop();
+      }
+    });
+    
     btnGallery.addEventListener('click', openGallery);
     btnRetake.addEventListener('click', resetCamera);
     btnSubmit.addEventListener('click', submitCheckin);
+    
+    // File inputs
     fileInput.addEventListener('change', handleFileSelect);
+    cameraInput.addEventListener('change', handleCameraCapture);
+    
+    // Quick actions
     document.getElementById('btnNewCheckin').addEventListener('click', newCheckin);
     document.getElementById('btnExportASM').addEventListener('click', exportASM);
     
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
-      debug('App khởi động');
+      // Detect device
+      detectDevice();
+      debug('App khởi động - ' + (isMobile ? 'Mobile' : 'Desktop'));
       
       // Set default checkout date
       document.getElementById('checkoutDate').value = getTomorrow();
@@ -1181,13 +1273,16 @@
       const isAndroid = /Android/.test(ua);
       document.getElementById('footerDebug').textContent = 
         (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') + ' | ' + 
-        (navigator.mediaDevices ? 'Camera OK' : 'No Camera API');
+        (navigator.mediaDevices ? 'Camera API OK' : 'No Camera API');
       
-      debug('Device: ' + (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'));
       debug('mediaDevices: ' + !!navigator.mediaDevices);
-      debug('getUserMedia: ' + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
+      
+      // Update camera button text for mobile
+      if (isMobile) {
+        btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+        debug('Mobile mode: Camera sẽ dùng input capture');
+      }
     });
   </script>
 </body>
 </html>
-
