@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Light Hotel - Check-in ASM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+      min-height: 100vh;
+      padding: 12px;
+    }
+    
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #1a73e8 0%, #1565c0 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .header p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+    
+    .content {
+      padding: 20px;
+    }
+    
+    .form-section {
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #5f6368;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: #1a73e8;
+      border-radius: 2px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .form-group {
+      flex: 1;
+    }
+    
+    .form-group.full {
+      flex: 1 1 100%;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #5f6368;
+      margin-bottom: 6px;
+    }
+    
+    label .required {
+      color: #ea4335;
+    }
+    
+    select, input[type="text"], input[type="tel"], input[type="date"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e8eaed;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.2s;
+      background: #fff;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    }
+    
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .toggle-btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 12px;
+      border: 2px solid #e8eaed;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #5f6368;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    
+    .toggle-btn:hover {
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+    
+    .toggle-btn.active {
+      background: #1a73e8;
+      border-color: #1a73e8;
+      color: white;
+    }
+    
+    /* Camera Section */
+    .camera-section {
+      background: #f8f9fa;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .camera-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    
+    #video, #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    #preview {
+      display: none;
+    }
+    
+    .camera-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+    
+    .camera-guide {
+      border: 3px dashed rgba(255,255,255,0.6);
+      border-radius: 12px;
+      width: 90%;
+      height: 70%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .camera-guide-text {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      background: rgba(0,0,0,0.5);
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+    
+    .camera-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .btn-capture, .btn-retake {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .btn-capture {
+      background: linear-gradient(135deg, #1a73e8 0%, #1565c0 100%);
+      color: white;
+    }
+    
+    .btn-capture:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px rgba(26,115,232,0.4);
+    }
+    
+    .btn-retake {
+      background: #f1f3f4;
+      color: #5f6368;
+      display: none;
+    }
+    
+    .btn-retake:hover {
+      background: #e8eaed;
+    }
+    
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #34a853 0%, #1e8e3e 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .btn-submit:hover:not(:disabled) {
+      transform: scale(1.01);
+      box-shadow: 0 4px 15px rgba(52,168,83,0.4);
+    }
+    
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    /* Status Messages */
+    .status {
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .status.show {
+      display: flex;
+    }
+    
+    .status.loading {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    
+    .status.success {
+      background: #e6f4ea;
+      color: #1e8e3e;
+    }
+    
+    .status.error {
+      background: #fce8e6;
+      color: #c5221f;
+    }
+    
+    .status-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .status-content {
+      flex: 1;
+    }
+    
+    .status-content strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    
+    /* Result Card */
+    .result-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      display: none;
+    }
+    
+    .result-card.show {
+      display: block;
+    }
+    
+    .result-title {
+      font-weight: 600;
+      color: #1a73e8;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e8eaed;
+      font-size: 0.9rem;
+    }
+    
+    .result-row:last-child {
+      border-bottom: none;
+    }
+    
+    .result-label {
+      color: #5f6368;
+    }
+    
+    .result-value {
+      font-weight: 500;
+      color: #202124;
+      text-align: right;
+      max-width: 60%;
+    }
+    
+    /* Spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Room Grid */
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    .room-btn {
+      padding: 12px 8px;
+      border: 2px solid #e8eaed;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #5f6368;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .room-btn:hover {
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+    
+    .room-btn.selected {
+      background: #1a73e8;
+      border-color: #1a73e8;
+      color: white;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e8eaed;
+    }
+    
+    .btn-quick {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e8eaed;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #5f6368;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-quick:hover {
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: #9aa0a6;
+      font-size: 0.75rem;
+      border-top: 1px solid #e8eaed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏨 Light Hotel</h1>
+      <p>Check-in khách - Tương thích ASM</p>
+    </div>
+    
+    <div class="content">
+      <!-- Status Messages -->
+      <div id="status" class="status">
+        <span class="status-icon"></span>
+        <div class="status-content"></div>
+      </div>
+      
+      <!-- Room Selection -->
+      <div class="form-section">
+        <div class="section-title">1. Chọn phòng <span class="required">*</span></div>
+        <div class="room-grid" id="roomGrid">
+          <button class="room-btn" data-room="101">101</button>
+          <button class="room-btn" data-room="102">102</button>
+          <button class="room-btn" data-room="103">103</button>
+          <button class="room-btn" data-room="104">104</button>
+          <button class="room-btn" data-room="105">105</button>
+          <button class="room-btn" data-room="106">106</button>
+          <button class="room-btn" data-room="107">107</button>
+          <button class="room-btn" data-room="108">108</button>
+          <button class="room-btn" data-room="201">201</button>
+          <button class="room-btn" data-room="202">202</button>
+          <button class="room-btn" data-room="203">203</button>
+          <button class="room-btn" data-room="204">204</button>
+          <button class="room-btn" data-room="205">205</button>
+          <button class="room-btn" data-room="206">206</button>
+          <button class="room-btn" data-room="207">207</button>
+          <button class="room-btn" data-room="208">208</button>
+        </div>
+      </div>
+      
+      <!-- Guest Type -->
+      <div class="form-section">
+        <div class="section-title">2. Loại khách</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-guest="vn">🇻🇳 Việt Nam</button>
+          <button class="toggle-btn" data-guest="foreign">🌍 Nước ngoài</button>
+        </div>
+      </div>
+      
+      <!-- Stay Reason -->
+      <div class="form-section">
+        <div class="section-title">3. Lý do lưu trú <span class="required">*</span></div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-reason="Du lịch">Du lịch</button>
+          <button class="toggle-btn" data-reason="Công tác">Công tác</button>
+          <button class="toggle-btn" data-reason="Nghỉ ngơi">Nghỉ ngơi</button>
+          <button class="toggle-btn" data-reason="Khác">Khác</button>
+        </div>
+      </div>
+      
+      <!-- Additional Info (Vietnamese) -->
+      <div class="form-section" id="vnExtraFields">
+        <div class="section-title">4. Loại cư trú</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-residence="Thường trú">Thường trú</button>
+          <button class="toggle-btn" data-residence="Tạm trú">Tạm trú</button>
+          <button class="toggle-btn" data-residence="Địa chỉ khác">Địa chỉ khác</button>
+        </div>
+      </div>
+      
+      <!-- Optional Fields -->
+      <div class="form-section">
+        <div class="section-title">5. Thông tin thêm (không bắt buộc)</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="tel" id="phone" placeholder="09xxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>Ngày check-out</label>
+            <input type="date" id="checkoutDate">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Camera Section -->
+      <div class="form-section">
+        <div class="section-title">6. Chụp ảnh giấy tờ <span class="required">*</span></div>
+        <div class="camera-section">
+          <div class="camera-container">
+            <video id="video" autoplay playsinline></video>
+            <img id="preview" alt="Preview">
+            <div class="camera-overlay" id="cameraOverlay">
+              <div class="camera-guide">
+                <span style="font-size: 2rem;">📷</span>
+                <span class="camera-guide-text">Đặt CCCD/Hộ chiếu vào khung</span>
+              </div>
+            </div>
+          </div>
+          <div class="camera-buttons">
+            <button class="btn-capture" id="btnCapture">
+              <span>📸</span> Chụp ảnh
+            </button>
+            <button class="btn-retake" id="btnRetake">
+              <span>🔄</span> Chụp lại
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Submit Button -->
+      <button class="btn-submit" id="btnSubmit" disabled>
+        <span>✅</span> Xác nhận Check-in
+      </button>
+      
+      <!-- Result Card -->
+      <div class="result-card" id="resultCard">
+        <div class="result-title">
+          <span>✅</span> Thông tin đã ghi nhận
+        </div>
+        <div id="resultContent"></div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="btn-quick" id="btnNewCheckin">
+          ➕ Check-in khách mới
+        </button>
+        <button class="btn-quick" id="btnExportASM">
+          📤 Xuất ASM
+        </button>
+      </div>
+    </div>
+    
+    <div class="footer">
+      Light Hotel © 2025 | Version 2.0 ASM
+    </div>
+  </div>
+  
+  <canvas id="canvas" style="display: none;"></canvas>
+  
+  <script>
+    // ========== CẤU HÌNH ==========
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec'; // URL sau khi deploy
+    
+    // ========== STATE ==========
+    let selectedRoom = '';
+    let isVietnamese = true;
+    let lyDoLuuTru = 'Du lịch';
+    let loaiCuTru = 'Thường trú';
+    let capturedImage = null;
+    let stream = null;
+    
+    // ========== ELEMENTS ==========
+    const video = document.getElementById('video');
+    const preview = document.getElementById('preview');
+    const canvas = document.getElementById('canvas');
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnRetake = document.getElementById('btnRetake');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const statusEl = document.getElementById('status');
+    const resultCard = document.getElementById('resultCard');
+    const resultContent = document.getElementById('resultContent');
+    const vnExtraFields = document.getElementById('vnExtraFields');
+    
+    // ========== CAMERA ==========
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        preview.style.display = 'none';
+        cameraOverlay.style.display = 'flex';
+        btnCapture.style.display = 'flex';
+        btnRetake.style.display = 'none';
+        capturedImage = null;
+        updateSubmitButton();
+      } catch (err) {
+        showStatus('error', 'Lỗi camera', 'Không thể truy cập camera. Vui lòng cấp quyền và thử lại.');
+        console.error('Camera error:', err);
+      }
+    }
+    
+    function captureImage() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      
+      capturedImage = canvas.toDataURL('image/jpeg', 0.85);
+      preview.src = capturedImage;
+      
+      video.style.display = 'none';
+      preview.style.display = 'block';
+      cameraOverlay.style.display = 'none';
+      btnCapture.style.display = 'none';
+      btnRetake.style.display = 'flex';
+      
+      // Stop camera
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      updateSubmitButton();
+    }
+    
+    function retakeImage() {
+      startCamera();
+    }
+    
+    // ========== ROOM SELECTION ==========
+    document.getElementById('roomGrid').addEventListener('click', (e) => {
+      if (e.target.classList.contains('room-btn')) {
+        document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedRoom = e.target.dataset.room;
+        updateSubmitButton();
+      }
+    });
+    
+    // ========== GUEST TYPE ==========
+    document.querySelectorAll('[data-guest]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        isVietnamese = btn.dataset.guest === 'vn';
+        vnExtraFields.style.display = isVietnamese ? 'block' : 'none';
+      });
+    });
+    
+    // ========== STAY REASON ==========
+    document.querySelectorAll('[data-reason]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        lyDoLuuTru = btn.dataset.reason;
+      });
+    });
+    
+    // ========== RESIDENCE TYPE ==========
+    document.querySelectorAll('[data-residence]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loaiCuTru = btn.dataset.residence;
+      });
+    });
+    
+    // ========== VALIDATION ==========
+    function updateSubmitButton() {
+      const canSubmit = selectedRoom && capturedImage;
+      btnSubmit.disabled = !canSubmit;
+    }
+    
+    // ========== STATUS ==========
+    function showStatus(type, title, message) {
+      const icons = {
+        loading: '⏳',
+        success: '✅',
+        error: '❌'
+      };
+      
+      statusEl.className = `status show ${type}`;
+      statusEl.innerHTML = `
+        <span class="status-icon">${icons[type]}</span>
+        <div class="status-content">
+          <strong>${title}</strong>
+          <span>${message}</span>
+        </div>
+      `;
+      
+      if (type === 'loading') {
+        statusEl.querySelector('.status-icon').innerHTML = '<div class="spinner"></div>';
+      }
+    }
+    
+    function hideStatus() {
+      statusEl.className = 'status';
+    }
+    
+    // ========== SUBMIT ==========
+    async function submitCheckin() {
+      if (!selectedRoom || !capturedImage) {
+        showStatus('error', 'Thiếu thông tin', 'Vui lòng chọn phòng và chụp ảnh giấy tờ');
+        return;
+      }
+      
+      btnSubmit.disabled = true;
+      showStatus('loading', 'Đang xử lý...', 'Đang đọc thông tin từ giấy tờ');
+      resultCard.classList.remove('show');
+      
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'checkin',
+            image: capturedImage,
+            roomNumber: selectedRoom,
+            checkoutDate: document.getElementById('checkoutDate').value,
+            lyDoLuuTru: lyDoLuuTru,
+            loaiCuTru: loaiCuTru,
+            isVietnamese: isVietnamese,
+            phone: document.getElementById('phone').value
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const info = result.data.info;
+          showStatus('success', 'Check-in thành công!', `Khách ${info.hoTen} đã được ghi nhận`);
+          
+          // Show result card
+          resultContent.innerHTML = `
+            <div class="result-row">
+              <span class="result-label">Họ tên</span>
+              <span class="result-value">${info.hoTen}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Ngày sinh</span>
+              <span class="result-value">${info.ngaySinh}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Giới tính</span>
+              <span class="result-value">${info.gioiTinh}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Quốc tịch</span>
+              <span class="result-value">${info.quocTich}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Số giấy tờ</span>
+              <span class="result-value">${info.soGiayTo}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Phòng</span>
+              <span class="result-value">${info.tenPhong}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Check-in</span>
+              <span class="result-value">${info.thoiGianTu}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Lý do</span>
+              <span class="result-value">${info.lyDoLuuTru}</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">STT</span>
+              <span class="result-value">#${result.data.stt}</span>
+            </div>
+          `;
+          resultCard.classList.add('show');
+          
+        } else {
+          showStatus('error', 'Lỗi xử lý', result.error || 'Không thể đọc thông tin. Vui lòng chụp lại.');
+          btnSubmit.disabled = false;
+        }
+        
+      } catch (error) {
+        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server. Kiểm tra mạng và thử lại.');
+        btnSubmit.disabled = false;
+        console.error('Submit error:', error);
+      }
+    }
+    
+    // ========== QUICK ACTIONS ==========
+    function newCheckin() {
+      // Reset form
+      selectedRoom = '';
+      capturedImage = null;
+      document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
+      document.getElementById('phone').value = '';
+      document.getElementById('checkoutDate').value = '';
+      
+      // Reset toggles to default
+      document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-guest="vn"]').classList.add('active');
+      isVietnamese = true;
+      vnExtraFields.style.display = 'block';
+      
+      document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-reason="Du lịch"]').classList.add('active');
+      lyDoLuuTru = 'Du lịch';
+      
+      document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-residence="Thường trú"]').classList.add('active');
+      loaiCuTru = 'Thường trú';
+      
+      // Hide result and status
+      hideStatus();
+      resultCard.classList.remove('show');
+      
+      // Restart camera
+      startCamera();
+    }
+    
+    async function exportASM() {
+      showStatus('loading', 'Đang xuất...', 'Đang tạo file ASM Export');
+      
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'export_asm' })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showStatus('success', 'Xuất thành công!', result.data.message + '. Mở Google Sheet để tải file.');
+        } else {
+          showStatus('error', 'Lỗi xuất', result.error || result.data?.message);
+        }
+      } catch (error) {
+        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
+        console.error('Export error:', error);
+      }
+    }
+    
+    // ========== EVENT LISTENERS ==========
+    btnCapture.addEventListener('click', captureImage);
+    btnRetake.addEventListener('click', retakeImage);
+    btnSubmit.addEventListener('click', submitCheckin);
+    document.getElementById('btnNewCheckin').addEventListener('click', newCheckin);
+    document.getElementById('btnExportASM').addEventListener('click', exportASM);
+    
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+      
+      // Set default checkout date (tomorrow)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('checkoutDate').valueAsDate = tomorrow;
+    });
+  </script>
+</body>
+</html>
