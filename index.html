@@ -8,6 +8,7 @@
   <title>Light Hotel - Check-in ASM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -521,17 +522,15 @@
   <div class="container">
     <div class="header">
       <h1>🏨 Light Hotel</h1>
-      <p>Check-in khách - Tương thích ASM</p>
+      <p>Check-in ASM</p>
     </div>
     
     <div class="content">
-      <!-- Status Messages -->
       <div id="status" class="status">
         <span class="status-icon"></span>
         <div class="status-content"></div>
       </div>
       
-      <!-- Room Selection -->
       <div class="form-section">
         <div class="section-title">1. Chọn phòng <span class="required">*</span></div>
         <div class="room-grid" id="roomGrid">
@@ -554,7 +553,6 @@
         </div>
       </div>
       
-      <!-- Guest Type -->
       <div class="form-section">
         <div class="section-title">2. Loại khách</div>
         <div class="toggle-group">
@@ -563,7 +561,6 @@
         </div>
       </div>
       
-      <!-- Stay Reason -->
       <div class="form-section">
         <div class="section-title">3. Lý do lưu trú <span class="required">*</span></div>
         <div class="toggle-group">
@@ -574,7 +571,6 @@
         </div>
       </div>
       
-      <!-- Residence Type (Vietnamese only) -->
       <div class="form-section" id="vnExtraFields">
         <div class="section-title">4. Loại cư trú</div>
         <div class="toggle-group">
@@ -584,7 +580,6 @@
         </div>
       </div>
       
-      <!-- Optional Fields -->
       <div class="form-section">
         <div class="section-title">5. Thông tin thêm (không bắt buộc)</div>
         <div class="form-row">
@@ -599,11 +594,9 @@
         </div>
       </div>
       
-      <!-- Camera Section -->
       <div class="form-section">
         <div class="section-title">6. Chụp ảnh giấy tờ <span class="required">*</span></div>
         <div class="camera-section">
-          <!-- Camera Error Message -->
           <div id="cameraError" class="camera-error"></div>
           
           <div class="camera-container" id="cameraContainer">
@@ -628,23 +621,18 @@
             </button>
           </div>
           
-          <!-- Hidden file input for gallery - ĐÃ BỎ capture để mở thư viện thực sự -->
           <input type="file" id="fileInput" accept="image/*">
-          
-          <!-- Hidden file input for camera on mobile -->
+
           <input type="file" id="cameraInput" accept="image/*" capture="environment">
           
-          <!-- Debug info -->
           <div id="debugInfo" class="debug-info"></div>
         </div>
       </div>
       
-      <!-- Submit Button -->
       <button class="btn-submit" id="btnSubmit" disabled>
         <span>✅</span> Xác nhận Check-in
       </button>
       
-      <!-- Result Card -->
       <div class="result-card" id="resultCard">
         <div class="result-title">
           <span>✅</span> Thông tin đã ghi nhận
@@ -652,7 +640,6 @@
         <div id="resultContent"></div>
       </div>
       
-      <!-- Quick Actions -->
       <div class="quick-actions">
         <button class="btn-quick" id="btnNewCheckin">
           ➕ Check-in khách mới
@@ -662,7 +649,6 @@
         </button>
       </div>
 
-      <!-- Export Info -->
       <div class="export-info" id="exportInfo">
         <strong>💡 Hướng dẫn xuất ASM:</strong><br>
         1. Nhấn "Xuất ASM hôm nay" để tạo sheet ASM_Export<br>
@@ -673,7 +659,7 @@
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.2 ASM<br>
+      Light Hotel © 2025 | Version 2.3 ASM<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -682,7 +668,6 @@
   
   <script>
     // ========== CẤU HÌNH ==========
-    // ⚠️ THAY URL NÀY BẰNG URL CỦA ANH SAU KHI DEPLOY APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec';
     
     // Debug mode - set true để xem thông tin debug
@@ -1064,6 +1049,120 @@
     function hideStatus() {
       statusEl.className = 'status';
     }
+
+    // ========== QR CODE READER ==========
+    function tryReadQRCode(imageData) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          // Tạo canvas để đọc QR
+          const qrCanvas = document.createElement('canvas');
+          const ctx = qrCanvas.getContext('2d');
+          qrCanvas.width = img.width;
+          qrCanvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          
+          // Lấy image data
+          const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+          
+          // Đọc QR code
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          if (code && code.data) {
+            debug('QR Code found: ' + code.data.substring(0, 50) + '...');
+            const parsed = parseQRCodeCCCD(code.data);
+            resolve(parsed);
+          } else {
+            debug('No QR code found, will use AI OCR');
+            resolve(null);
+          }
+        };
+        img.onerror = function() {
+          debug('Error loading image for QR scan');
+          resolve(null);
+        };
+        img.src = imageData;
+      });
+    }
+
+    // Parse QR code CCCD Việt Nam
+    // Format: 034200003259|Nguyen Phuong Truong|20072000|Nam|Dia chi day du|18062025
+    function parseQRCodeCCCD(qrData) {
+      try {
+        // Kiểm tra có phải QR CCCD không (bắt đầu bằng số 12 chữ số)
+        if (!/^\d{12}\|/.test(qrData)) {
+          debug('QR không phải CCCD format');
+          return null;
+        }
+        
+        const parts = qrData.split('|');
+        if (parts.length < 5) {
+          debug('QR CCCD không đủ phần tử: ' + parts.length);
+          return null;
+        }
+        
+        const soGiayTo = parts[0];
+        const hoTen = parts[1].toUpperCase();
+        const ngaySinhRaw = parts[2]; // DDMMYYYY
+        const gioiTinh = parts[3];
+        const diaChiFull = parts[4];
+        
+        // Parse ngày sinh từ DDMMYYYY sang DD/MM/YYYY
+        let ngaySinh = '';
+        if (ngaySinhRaw && ngaySinhRaw.length === 8) {
+          ngaySinh = ngaySinhRaw.substring(0, 2) + '/' + 
+                     ngaySinhRaw.substring(2, 4) + '/' + 
+                     ngaySinhRaw.substring(4, 8);
+        }
+        
+        // Parse địa chỉ
+        const addressParts = diaChiFull.split(',').map(p => p.trim());
+        let tinh = '', huyen = '', xa = '', chiTiet = '';
+        
+        if (addressParts.length >= 4) {
+          chiTiet = addressParts.slice(0, -3).join(', ');
+          xa = addressParts[addressParts.length - 3];
+          huyen = addressParts[addressParts.length - 2];
+          tinh = addressParts[addressParts.length - 1];
+        } else if (addressParts.length === 3) {
+          xa = addressParts[0];
+          huyen = addressParts[1];
+          tinh = addressParts[2];
+        } else if (addressParts.length === 2) {
+          huyen = addressParts[0];
+          tinh = addressParts[1];
+        } else {
+          tinh = diaChiFull;
+        }
+        
+        debug('QR parsed successfully: ' + hoTen);
+        
+        return {
+          fromQR: true,
+          loaiGiayTo: 'CCCD',
+          soGiayTo: soGiayTo,
+          hoTen: hoTen,
+          ngaySinh: ngaySinh,
+          gioiTinh: gioiTinh,
+          quocTich: 'Việt Nam',
+          noiThuongTru: diaChiFull,
+          tinhThanh: tinh,
+          quanHuyen: huyen,
+          phuongXa: xa,
+          diaChiChiTiet: chiTiet
+        };
+      } catch (e) {
+        debug('Error parsing QR: ' + e.message);
+        return null;
+      }
+    }
+    
+    // ========== HELPERS ==========
+    function getTomorrow() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
+    }
     
     // ========== SUBMIT ==========
     async function submitCheckin() {
@@ -1078,8 +1177,20 @@
       }
       
       btnSubmit.disabled = true;
-      showStatus('loading', 'Đang xử lý...', 'Đang đọc thông tin từ giấy tờ');
       resultCard.classList.remove('show');
+      
+      // BƯỚC 1: Thử đọc QR Code trước
+      showStatus('loading', 'Đang xử lý...', 'Đang kiểm tra mã QR...');
+      
+      let qrData = null;
+      try {
+        qrData = await tryReadQRCode(capturedImage);
+      } catch (e) {
+        debug('QR read error: ' + e.message);
+      }
+      
+      // BƯỚC 2: Gửi request với flag useQR
+      showStatus('loading', 'Đang xử lý...', qrData ? 'Đã đọc QR, đang xác nhận...' : 'Đang đọc thông tin bằng AI...');
       
       debug('Đang gửi request...');
       
@@ -1092,10 +1203,15 @@
           lyDoLuuTru: lyDoLuuTru,
           loaiCuTru: loaiCuTru,
           isVietnamese: isVietnamese,
-          phone: document.getElementById('phone').value
+          phone: document.getElementById('phone').value,
+          // Gửi dữ liệu QR nếu có
+          qrData: qrData
         };
         
         debug('Request size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
+        if (qrData) {
+          debug('QR data included: ' + qrData.hoTen);
+        }
         
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -1112,7 +1228,9 @@
         
         if (result.success) {
           const info = result.data.info;
-          showStatus('success', 'Check-in thành công!', `Khách ${info.hoTen} đã được ghi nhận`);
+          const source = result.data.source || 'AI'; // 'QR' hoặc 'AI'
+          showStatus('success', 'Check-in thành công!', 
+            `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
           
           resultContent.innerHTML = `
             <div class="result-row">
@@ -1132,6 +1250,10 @@
               <span class="result-value">${info.quocTich || '-'}</span>
             </div>
             <div class="result-row">
+              <span class="result-label">Loại giấy tờ</span>
+              <span class="result-value">${info.loaiGiayTo || '-'}</span>
+            </div>
+            <div class="result-row">
               <span class="result-label">Số giấy tờ</span>
               <span class="result-value">${info.soGiayTo || '-'}</span>
             </div>
@@ -1144,8 +1266,8 @@
               <span class="result-value">${info.thoiGianTu || '-'}</span>
             </div>
             <div class="result-row">
-              <span class="result-label">Lý do</span>
-              <span class="result-value">${info.lyDoLuuTru || '-'}</span>
+              <span class="result-label">Nguồn dữ liệu</span>
+              <span class="result-value">${source === 'QR' ? '📱 QR Code' : '🤖 AI OCR'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">STT</span>
@@ -1165,77 +1287,7 @@
         btnSubmit.disabled = false;
       }
     }
-    
-    // ========== QUICK ACTIONS ==========
-    function newCheckin() {
-      selectedRoom = '';
-      capturedImage = null;
-      
-      document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
-      document.getElementById('phone').value = '';
-      document.getElementById('checkoutDate').value = getTomorrow();
-      
-      // Reset toggles
-      document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
-      document.querySelector('[data-guest="vn"]').classList.add('active');
-      isVietnamese = true;
-      vnExtraFields.style.display = 'block';
-      
-      document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
-      document.querySelector('[data-reason="Du lịch"]').classList.add('active');
-      lyDoLuuTru = 'Du lịch';
-      
-      document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
-      document.querySelector('[data-residence="Thường trú"]').classList.add('active');
-      loaiCuTru = 'Thường trú';
-      
-      hideStatus();
-      resultCard.classList.remove('show');
-      exportInfo.classList.remove('show');
-      resetCamera();
-      
-      // Scroll lên đầu
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      debug('Form đã reset cho khách mới');
-    }
-    
-    async function exportASM() {
-      if (APPS_SCRIPT_URL === 'THAY_URL_WEB_APP_VÀO_ĐÂY') {
-        showStatus('error', 'Chưa cấu hình', 'Vui lòng cập nhật APPS_SCRIPT_URL trong code');
-        return;
-      }
-      
-      showStatus('loading', 'Đang xuất...', 'Đang tạo file ASM Export từ dữ liệu hôm nay');
-      
-      try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'export_asm' })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          showStatus('success', 'Xuất thành công!', `Đã xuất ${result.data.count} khách vào tab "ASM_Export"`);
-          exportInfo.classList.add('show');
-        } else {
-          const errorMsg = result.error || result.data?.message || 'Không có dữ liệu check-in hôm nay';
-          showStatus('info', 'Thông báo', errorMsg);
-        }
-      } catch (error) {
-        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
-        debug('Export error: ' + error.message);
-      }
-    }
-    
-    // ========== HELPERS ==========
-    function getTomorrow() {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return tomorrow.toISOString().split('T')[0];
-    }
-    
+
     // ========== EVENT LISTENERS ==========
     // Camera button - behavior depends on device
     btnCamera.addEventListener('click', function() {
@@ -1250,9 +1302,20 @@
     btnRetake.addEventListener('click', resetCamera);
     btnSubmit.addEventListener('click', submitCheckin);
     
-    // File inputs
-    fileInput.addEventListener('change', handleFileSelect);
-    cameraInput.addEventListener('change', handleCameraCapture);
+    // File inputs - mỗi input chỉ xử lý 1 lần
+    fileInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelect(e);
+      }
+    });
+
+    cameraInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelect(e);
+        // Reset để có thể chụp lại
+        cameraInput.value = '';
+      }
+    });
     
     // Quick actions
     document.getElementById('btnNewCheckin').addEventListener('click', newCheckin);
