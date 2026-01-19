@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Light Hotel - Check-in ASM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -73,6 +75,10 @@
       border-radius: 2px;
     }
     
+    .required {
+      color: #ea4335;
+    }
+    
     .form-row {
       display: flex;
       gap: 12px;
@@ -83,20 +89,12 @@
       flex: 1;
     }
     
-    .form-group.full {
-      flex: 1 1 100%;
-    }
-    
     label {
       display: block;
       font-size: 0.8rem;
       font-weight: 500;
       color: #5f6368;
       margin-bottom: 6px;
-    }
-    
-    label .required {
-      color: #ea4335;
     }
     
     select, input[type="text"], input[type="tel"], input[type="date"] {
@@ -160,85 +158,110 @@
       position: relative;
       width: 100%;
       aspect-ratio: 4/3;
-      background: #000;
+      background: #1a1a1a;
       border-radius: 12px;
       overflow: hidden;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
-    #video, #preview {
+    #video {
       width: 100%;
       height: 100%;
       object-fit: cover;
-    }
-    
-    #preview {
       display: none;
     }
     
-    .camera-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
+    #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+    
+    .camera-placeholder {
       text-align: center;
+      color: #9aa0a6;
       padding: 20px;
-      pointer-events: none;
     }
     
-    .camera-guide {
-      border: 3px dashed rgba(255,255,255,0.6);
-      border-radius: 12px;
-      width: 90%;
-      height: 70%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
+    .camera-placeholder .icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
     }
     
-    .camera-guide-text {
-      font-size: 0.85rem;
-      opacity: 0.9;
-      background: rgba(0,0,0,0.5);
-      padding: 8px 16px;
+    .camera-placeholder .text {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    
+    .camera-placeholder .subtext {
+      font-size: 0.8rem;
+      color: #bdc1c6;
+    }
+    
+    .camera-error {
+      background: #fce8e6;
+      color: #c5221f;
+      padding: 12px;
       border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+    
+    .camera-error.show {
+      display: block;
     }
     
     .camera-buttons {
       display: flex;
       gap: 12px;
       justify-content: center;
+      flex-wrap: wrap;
     }
     
-    .btn-capture, .btn-retake {
-      padding: 14px 28px;
+    .btn-camera, .btn-gallery, .btn-retake {
+      padding: 14px 20px;
       border: none;
       border-radius: 12px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
       transition: all 0.2s;
+      flex: 1;
+      justify-content: center;
+      min-width: 140px;
     }
     
-    .btn-capture {
+    .btn-camera {
       background: linear-gradient(135deg, #1a73e8 0%, #1565c0 100%);
       color: white;
     }
     
-    .btn-capture:hover {
+    .btn-camera:hover:not(:disabled) {
       transform: scale(1.02);
       box-shadow: 0 4px 15px rgba(26,115,232,0.4);
+    }
+    
+    .btn-camera:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-gallery {
+      background: #fff;
+      color: #1a73e8;
+      border: 2px solid #1a73e8;
+    }
+    
+    .btn-gallery:hover {
+      background: #e8f0fe;
     }
     
     .btn-retake {
@@ -249,6 +272,11 @@
     
     .btn-retake:hover {
       background: #e8eaed;
+    }
+    
+    /* Hidden file input */
+    #fileInput {
+      display: none;
     }
     
     /* Submit Button */
@@ -372,10 +400,11 @@
     .spinner {
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
+      border: 3px solid rgba(26,115,232,0.3);
+      border-top-color: #1a73e8;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
+      display: inline-block;
     }
     
     @keyframes spin {
@@ -447,6 +476,22 @@
       font-size: 0.75rem;
       border-top: 1px solid #e8eaed;
     }
+    
+    /* Debug info */
+    .debug-info {
+      background: #f1f3f4;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #5f6368;
+      margin-top: 8px;
+      font-family: monospace;
+      display: none;
+    }
+    
+    .debug-info.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -506,7 +551,7 @@
         </div>
       </div>
       
-      <!-- Additional Info (Vietnamese) -->
+      <!-- Residence Type (Vietnamese only) -->
       <div class="form-section" id="vnExtraFields">
         <div class="section-title">4. Loại cư trú</div>
         <div class="toggle-group">
@@ -535,24 +580,36 @@
       <div class="form-section">
         <div class="section-title">6. Chụp ảnh giấy tờ <span class="required">*</span></div>
         <div class="camera-section">
-          <div class="camera-container">
-            <video id="video" autoplay playsinline></video>
+          <!-- Camera Error Message -->
+          <div id="cameraError" class="camera-error"></div>
+          
+          <div class="camera-container" id="cameraContainer">
+            <video id="video" autoplay playsinline muted></video>
             <img id="preview" alt="Preview">
-            <div class="camera-overlay" id="cameraOverlay">
-              <div class="camera-guide">
-                <span style="font-size: 2rem;">📷</span>
-                <span class="camera-guide-text">Đặt CCCD/Hộ chiếu vào khung</span>
-              </div>
+            <div class="camera-placeholder" id="placeholder">
+              <div class="icon">📷</div>
+              <div class="text">Chụp ảnh hoặc chọn từ thư viện</div>
+              <div class="subtext">CCCD / CMND / Hộ chiếu</div>
             </div>
           </div>
+          
           <div class="camera-buttons">
-            <button class="btn-capture" id="btnCapture">
-              <span>📸</span> Chụp ảnh
+            <button class="btn-camera" id="btnCamera">
+              <span>📸</span> Mở Camera
+            </button>
+            <button class="btn-gallery" id="btnGallery">
+              <span>🖼️</span> Thư viện
             </button>
             <button class="btn-retake" id="btnRetake">
-              <span>🔄</span> Chụp lại
+              <span>🔄</span> Chụp/Chọn lại
             </button>
           </div>
+          
+          <!-- Hidden file input for gallery -->
+          <input type="file" id="fileInput" accept="image/*" capture="environment">
+          
+          <!-- Debug info -->
+          <div id="debugInfo" class="debug-info"></div>
         </div>
       </div>
       
@@ -581,7 +638,8 @@
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.0 ASM
+      Light Hotel © 2025 | Version 2.1 ASM<br>
+      <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
   
@@ -589,7 +647,11 @@
   
   <script>
     // ========== CẤU HÌNH ==========
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec'; // URL sau khi deploy
+    // ⚠️ THAY URL NÀY BẰNG URL CỦA ANH SAU KHI DEPLOY APPS SCRIPT
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec';
+    
+    // Debug mode - set true để xem thông tin debug
+    const DEBUG_MODE = true;
     
     // ========== STATE ==========
     let selectedRoom = '';
@@ -598,69 +660,268 @@
     let loaiCuTru = 'Thường trú';
     let capturedImage = null;
     let stream = null;
+    let cameraActive = false;
     
     // ========== ELEMENTS ==========
     const video = document.getElementById('video');
     const preview = document.getElementById('preview');
     const canvas = document.getElementById('canvas');
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const btnCapture = document.getElementById('btnCapture');
+    const placeholder = document.getElementById('placeholder');
+    const cameraError = document.getElementById('cameraError');
+    const btnCamera = document.getElementById('btnCamera');
+    const btnGallery = document.getElementById('btnGallery');
     const btnRetake = document.getElementById('btnRetake');
     const btnSubmit = document.getElementById('btnSubmit');
+    const fileInput = document.getElementById('fileInput');
     const statusEl = document.getElementById('status');
     const resultCard = document.getElementById('resultCard');
     const resultContent = document.getElementById('resultContent');
     const vnExtraFields = document.getElementById('vnExtraFields');
+    const debugInfo = document.getElementById('debugInfo');
     
-    // ========== CAMERA ==========
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        });
-        video.srcObject = stream;
-        video.style.display = 'block';
-        preview.style.display = 'none';
-        cameraOverlay.style.display = 'flex';
-        btnCapture.style.display = 'flex';
-        btnRetake.style.display = 'none';
-        capturedImage = null;
-        updateSubmitButton();
-      } catch (err) {
-        showStatus('error', 'Lỗi camera', 'Không thể truy cập camera. Vui lòng cấp quyền và thử lại.');
-        console.error('Camera error:', err);
+    // ========== DEBUG ==========
+    function debug(message) {
+      if (DEBUG_MODE) {
+        console.log('[DEBUG]', message);
+        const timestamp = new Date().toLocaleTimeString();
+        debugInfo.innerHTML = `[${timestamp}] ${message}`;
+        debugInfo.classList.add('show');
       }
     }
     
-    function captureImage() {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+    // ========== CAMERA ==========
+    async function startCamera() {
+      debug('Đang khởi động camera...');
+      cameraError.classList.remove('show');
+      
+      // Kiểm tra hỗ trợ
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showCameraError('Trình duyệt không hỗ trợ camera. Vui lòng dùng nút "Thư viện" để chọn ảnh.');
+        debug('mediaDevices không được hỗ trợ');
+        return false;
+      }
+      
+      try {
+        // Dừng stream cũ nếu có
+        stopCamera();
+        
+        // Thử camera sau (environment) trước
+        const constraints = {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        };
+        
+        debug('Requesting camera với constraints: ' + JSON.stringify(constraints.video.facingMode));
+        
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        debug('Camera stream nhận được!');
+        
+        video.srcObject = stream;
+        
+        // Đợi video sẵn sàng
+        await new Promise((resolve, reject) => {
+          video.onloadedmetadata = () => {
+            debug('Video metadata loaded');
+            resolve();
+          };
+          video.onerror = (e) => {
+            debug('Video error: ' + e.message);
+            reject(e);
+          };
+          setTimeout(() => reject(new Error('Video load timeout')), 5000);
+        });
+        
+        await video.play();
+        debug('Video đang phát, kích thước: ' + video.videoWidth + 'x' + video.videoHeight);
+        
+        // Hiển thị video
+        video.style.display = 'block';
+        preview.style.display = 'none';
+        placeholder.style.display = 'none';
+        
+        // Đổi nút
+        btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+        btnCamera.onclick = captureFromCamera;
+        btnGallery.style.display = 'none';
+        btnRetake.style.display = 'none';
+        
+        cameraActive = true;
+        return true;
+        
+      } catch (err) {
+        debug('Lỗi camera: ' + err.name + ' - ' + err.message);
+        
+        let errorMessage = '';
+        switch(err.name) {
+          case 'NotAllowedError':
+          case 'PermissionDeniedError':
+            errorMessage = 'Quyền camera bị từ chối. Vui lòng:\n1. Nhấn vào 🔒 trên thanh địa chỉ\n2. Cho phép quyền Camera\n3. Tải lại trang';
+            break;
+          case 'NotFoundError':
+          case 'DevicesNotFoundError':
+            errorMessage = 'Không tìm thấy camera. Vui lòng dùng nút "Thư viện" để chọn ảnh.';
+            break;
+          case 'NotReadableError':
+          case 'TrackStartError':
+            errorMessage = 'Camera đang được sử dụng bởi ứng dụng khác. Đóng các app khác và thử lại.';
+            break;
+          case 'OverconstrainedError':
+            errorMessage = 'Camera không hỗ trợ. Đang thử camera khác...';
+            // Thử lại với constraints đơn giản hơn
+            return await startCameraFallback();
+          case 'AbortError':
+            errorMessage = 'Camera bị hủy. Vui lòng thử lại.';
+            break;
+          default:
+            errorMessage = `Lỗi camera: ${err.message}. Vui lòng dùng nút "Thư viện" để chọn ảnh.`;
+        }
+        
+        showCameraError(errorMessage);
+        return false;
+      }
+    }
+    
+    // Fallback với constraints đơn giản
+    async function startCameraFallback() {
+      debug('Thử camera fallback...');
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        
+        video.srcObject = stream;
+        await video.play();
+        
+        video.style.display = 'block';
+        preview.style.display = 'none';
+        placeholder.style.display = 'none';
+        
+        btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+        btnCamera.onclick = captureFromCamera;
+        btnGallery.style.display = 'none';
+        
+        cameraActive = true;
+        debug('Camera fallback thành công!');
+        return true;
+        
+      } catch (err) {
+        debug('Camera fallback thất bại: ' + err.message);
+        showCameraError('Không thể mở camera. Vui lòng dùng nút "Thư viện" để chọn ảnh.');
+        return false;
+      }
+    }
+    
+    function showCameraError(message) {
+      cameraError.textContent = message;
+      cameraError.classList.add('show');
+      cameraActive = false;
+    }
+    
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+          debug('Stopped track: ' + track.kind);
+        });
+        stream = null;
+      }
+      video.srcObject = null;
+      cameraActive = false;
+    }
+    
+    function captureFromCamera() {
+      if (!cameraActive) {
+        debug('Camera không active, không thể chụp');
+        return;
+      }
+      
+      debug('Chụp ảnh từ camera...');
+      
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0);
       
       capturedImage = canvas.toDataURL('image/jpeg', 0.85);
-      preview.src = capturedImage;
+      debug('Ảnh đã chụp, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
       
-      video.style.display = 'none';
+      showPreview(capturedImage);
+      stopCamera();
+    }
+    
+    function showPreview(imageData) {
+      preview.src = imageData;
       preview.style.display = 'block';
-      cameraOverlay.style.display = 'none';
-      btnCapture.style.display = 'none';
-      btnRetake.style.display = 'flex';
+      video.style.display = 'none';
+      placeholder.style.display = 'none';
       
-      // Stop camera
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      btnCamera.style.display = 'none';
+      btnGallery.style.display = 'none';
+      btnRetake.style.display = 'flex';
       
       updateSubmitButton();
     }
     
-    function retakeImage() {
-      startCamera();
+    function resetCamera() {
+      capturedImage = null;
+      stopCamera();
+      
+      preview.style.display = 'none';
+      video.style.display = 'none';
+      placeholder.style.display = 'flex';
+      
+      btnCamera.innerHTML = '<span>📸</span> Mở Camera';
+      btnCamera.onclick = startCamera;
+      btnCamera.style.display = 'flex';
+      btnGallery.style.display = 'flex';
+      btnRetake.style.display = 'none';
+      
+      cameraError.classList.remove('show');
+      updateSubmitButton();
+    }
+    
+    // ========== FILE INPUT (Gallery) ==========
+    function openGallery() {
+      debug('Mở thư viện ảnh...');
+      fileInput.click();
+    }
+    
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) {
+        debug('Không có file được chọn');
+        return;
+      }
+      
+      debug('File được chọn: ' + file.name + ', size: ' + Math.round(file.size / 1024) + 'KB');
+      
+      // Kiểm tra loại file
+      if (!file.type.startsWith('image/')) {
+        showCameraError('Vui lòng chọn file ảnh (JPG, PNG...)');
+        return;
+      }
+      
+      // Kiểm tra kích thước (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        showCameraError('Ảnh quá lớn (>10MB). Vui lòng chọn ảnh nhỏ hơn.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        capturedImage = event.target.result;
+        debug('Ảnh đã load, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
+        showPreview(capturedImage);
+      };
+      reader.onerror = function() {
+        showCameraError('Không thể đọc file ảnh. Vui lòng thử lại.');
+        debug('FileReader error');
+      };
+      reader.readAsDataURL(file);
     }
     
     // ========== ROOM SELECTION ==========
@@ -669,35 +930,37 @@
         document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
         e.target.classList.add('selected');
         selectedRoom = e.target.dataset.room;
+        debug('Phòng được chọn: ' + selectedRoom);
         updateSubmitButton();
       }
     });
     
-    // ========== GUEST TYPE ==========
+    // ========== TOGGLE BUTTONS ==========
     document.querySelectorAll('[data-guest]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         isVietnamese = btn.dataset.guest === 'vn';
         vnExtraFields.style.display = isVietnamese ? 'block' : 'none';
+        debug('Loại khách: ' + (isVietnamese ? 'Việt Nam' : 'Nước ngoài'));
       });
     });
     
-    // ========== STAY REASON ==========
     document.querySelectorAll('[data-reason]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         lyDoLuuTru = btn.dataset.reason;
+        debug('Lý do: ' + lyDoLuuTru);
       });
     });
     
-    // ========== RESIDENCE TYPE ==========
     document.querySelectorAll('[data-residence]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         loaiCuTru = btn.dataset.residence;
+        debug('Loại cư trú: ' + loaiCuTru);
       });
     });
     
@@ -705,12 +968,14 @@
     function updateSubmitButton() {
       const canSubmit = selectedRoom && capturedImage;
       btnSubmit.disabled = !canSubmit;
+      debug('Submit button: ' + (canSubmit ? 'enabled' : 'disabled') + 
+            ' (room: ' + !!selectedRoom + ', image: ' + !!capturedImage + ')');
     }
     
     // ========== STATUS ==========
     function showStatus(type, title, message) {
       const icons = {
-        loading: '⏳',
+        loading: '<div class="spinner"></div>',
         success: '✅',
         error: '❌'
       };
@@ -723,10 +988,6 @@
           <span>${message}</span>
         </div>
       `;
-      
-      if (type === 'loading') {
-        statusEl.querySelector('.status-icon').innerHTML = '<div class="spinner"></div>';
-      }
     }
     
     function hideStatus() {
@@ -740,64 +1001,80 @@
         return;
       }
       
+      if (APPS_SCRIPT_URL === 'THAY_URL_WEB_APP_VÀO_ĐÂY') {
+        showStatus('error', 'Chưa cấu hình', 'Vui lòng cập nhật APPS_SCRIPT_URL trong code');
+        return;
+      }
+      
       btnSubmit.disabled = true;
       showStatus('loading', 'Đang xử lý...', 'Đang đọc thông tin từ giấy tờ');
       resultCard.classList.remove('show');
       
+      debug('Đang gửi request đến: ' + APPS_SCRIPT_URL);
+      
       try {
+        const requestBody = {
+          action: 'checkin',
+          image: capturedImage,
+          roomNumber: selectedRoom,
+          checkoutDate: document.getElementById('checkoutDate').value,
+          lyDoLuuTru: lyDoLuuTru,
+          loaiCuTru: loaiCuTru,
+          isVietnamese: isVietnamese,
+          phone: document.getElementById('phone').value
+        };
+        
+        debug('Request body size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
+        
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            action: 'checkin',
-            image: capturedImage,
-            roomNumber: selectedRoom,
-            checkoutDate: document.getElementById('checkoutDate').value,
-            lyDoLuuTru: lyDoLuuTru,
-            loaiCuTru: loaiCuTru,
-            isVietnamese: isVietnamese,
-            phone: document.getElementById('phone').value
-          })
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+          body: JSON.stringify(requestBody)
         });
         
+        debug('Response status: ' + response.status);
+        
         const result = await response.json();
+        debug('Response: ' + JSON.stringify(result).substring(0, 200));
         
         if (result.success) {
           const info = result.data.info;
           showStatus('success', 'Check-in thành công!', `Khách ${info.hoTen} đã được ghi nhận`);
           
-          // Show result card
           resultContent.innerHTML = `
             <div class="result-row">
               <span class="result-label">Họ tên</span>
-              <span class="result-value">${info.hoTen}</span>
+              <span class="result-value">${info.hoTen || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Ngày sinh</span>
-              <span class="result-value">${info.ngaySinh}</span>
+              <span class="result-value">${info.ngaySinh || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Giới tính</span>
-              <span class="result-value">${info.gioiTinh}</span>
+              <span class="result-value">${info.gioiTinh || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Quốc tịch</span>
-              <span class="result-value">${info.quocTich}</span>
+              <span class="result-value">${info.quocTich || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Số giấy tờ</span>
-              <span class="result-value">${info.soGiayTo}</span>
+              <span class="result-value">${info.soGiayTo || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Phòng</span>
-              <span class="result-value">${info.tenPhong}</span>
+              <span class="result-value">${info.tenPhong || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Check-in</span>
-              <span class="result-value">${info.thoiGianTu}</span>
+              <span class="result-value">${info.thoiGianTu || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">Lý do</span>
-              <span class="result-value">${info.lyDoLuuTru}</span>
+              <span class="result-value">${info.lyDoLuuTru || '-'}</span>
             </div>
             <div class="result-row">
               <span class="result-label">STT</span>
@@ -807,27 +1084,27 @@
           resultCard.classList.add('show');
           
         } else {
-          showStatus('error', 'Lỗi xử lý', result.error || 'Không thể đọc thông tin. Vui lòng chụp lại.');
+          showStatus('error', 'Lỗi xử lý', result.error || 'Không thể đọc thông tin. Vui lòng chụp lại ảnh rõ hơn.');
           btnSubmit.disabled = false;
         }
         
       } catch (error) {
+        debug('Fetch error: ' + error.message);
         showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server. Kiểm tra mạng và thử lại.');
         btnSubmit.disabled = false;
-        console.error('Submit error:', error);
       }
     }
     
     // ========== QUICK ACTIONS ==========
     function newCheckin() {
-      // Reset form
       selectedRoom = '';
       capturedImage = null;
+      
       document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
       document.getElementById('phone').value = '';
-      document.getElementById('checkoutDate').value = '';
+      document.getElementById('checkoutDate').value = getTomorrow();
       
-      // Reset toggles to default
+      // Reset toggles
       document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
       document.querySelector('[data-guest="vn"]').classList.add('active');
       isVietnamese = true;
@@ -841,15 +1118,19 @@
       document.querySelector('[data-residence="Thường trú"]').classList.add('active');
       loaiCuTru = 'Thường trú';
       
-      // Hide result and status
       hideStatus();
       resultCard.classList.remove('show');
+      resetCamera();
       
-      // Restart camera
-      startCamera();
+      debug('Form đã reset');
     }
     
     async function exportASM() {
+      if (APPS_SCRIPT_URL === 'THAY_URL_WEB_APP_VÀO_ĐÂY') {
+        showStatus('error', 'Chưa cấu hình', 'Vui lòng cập nhật APPS_SCRIPT_URL trong code');
+        return;
+      }
+      
       showStatus('loading', 'Đang xuất...', 'Đang tạo file ASM Export');
       
       try {
@@ -863,30 +1144,50 @@
         if (result.success) {
           showStatus('success', 'Xuất thành công!', result.data.message + '. Mở Google Sheet để tải file.');
         } else {
-          showStatus('error', 'Lỗi xuất', result.error || result.data?.message);
+          showStatus('error', 'Lỗi xuất', result.error || result.data?.message || 'Không có dữ liệu');
         }
       } catch (error) {
         showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
-        console.error('Export error:', error);
+        debug('Export error: ' + error.message);
       }
     }
     
+    // ========== HELPERS ==========
+    function getTomorrow() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
+    }
+    
     // ========== EVENT LISTENERS ==========
-    btnCapture.addEventListener('click', captureImage);
-    btnRetake.addEventListener('click', retakeImage);
+    btnCamera.addEventListener('click', startCamera);
+    btnGallery.addEventListener('click', openGallery);
+    btnRetake.addEventListener('click', resetCamera);
     btnSubmit.addEventListener('click', submitCheckin);
+    fileInput.addEventListener('change', handleFileSelect);
     document.getElementById('btnNewCheckin').addEventListener('click', newCheckin);
     document.getElementById('btnExportASM').addEventListener('click', exportASM);
     
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
-      startCamera();
+      debug('App khởi động');
       
-      // Set default checkout date (tomorrow)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      document.getElementById('checkoutDate').valueAsDate = tomorrow;
+      // Set default checkout date
+      document.getElementById('checkoutDate').value = getTomorrow();
+      
+      // Show device info
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      const isAndroid = /Android/.test(ua);
+      document.getElementById('footerDebug').textContent = 
+        (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') + ' | ' + 
+        (navigator.mediaDevices ? 'Camera OK' : 'No Camera API');
+      
+      debug('Device: ' + (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'));
+      debug('mediaDevices: ' + !!navigator.mediaDevices);
+      debug('getUserMedia: ' + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
     });
   </script>
 </body>
 </html>
+
