@@ -659,7 +659,7 @@
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.3 ASM<br>
+      Light Hotel © 2025 | Version 2.4.1 ASM (Fix QR)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -1086,40 +1086,67 @@
     }
 
     // Parse QR code CCCD Việt Nam
-    // Format: 034200003259|Nguyen Phuong Truong|20072000|Nam|Dia chi day du|18062025
+    // Format THỰC TẾ (7 trường): SốCCCD|SốCMND|HọTên|GiớiTính|NgàySinh(DDMMYYYY)|ĐịaChỉ|NgàyCấp(DDMMYYYY)
+    // Ví dụ: 033196010656|145787909|Lê Thị Hải Anh|Nữ|30121996|Đội 6, Thôn Dị Chế, Hoàng Hoa Thám, Hưng Yên, Hưng Yên|04102024
     function parseQRCodeCCCD(qrData) {
       try {
+        debug('Raw QR data: ' + qrData);
+        
         // Kiểm tra có phải QR CCCD không (bắt đầu bằng số 12 chữ số)
         if (!/^\d{12}\|/.test(qrData)) {
-          debug('QR không phải CCCD format');
+          debug('QR không phải CCCD format (không bắt đầu bằng 12 số)');
           return null;
         }
         
         const parts = qrData.split('|');
-        if (parts.length < 5) {
-          debug('QR CCCD không đủ phần tử: ' + parts.length);
+        debug('QR parts count: ' + parts.length);
+        debug('QR parts: ' + JSON.stringify(parts));
+        
+        // QR CCCD có 7 trường
+        if (parts.length < 6) {
+          debug('QR CCCD không đủ phần tử: ' + parts.length + ' (cần ít nhất 6)');
           return null;
         }
         
-        const soGiayTo = parts[0];
-        const hoTen = parts[1].toUpperCase();
-        const ngaySinhRaw = parts[2]; // DDMMYYYY
-        const gioiTinh = parts[3];
-        const diaChiFull = parts[4];
+        // Parse theo format 7 trường CHUẨN
+        const soCCCD = parts[0];           // [0] Số CCCD (12 số)
+        const soCMND = parts[1];           // [1] Số CMND cũ (9 số) - có thể rỗng
+        const hoTen = parts[2].toUpperCase(); // [2] Họ và tên
+        const gioiTinh = parts[3];         // [3] Giới tính (Nam/Nữ)
+        const ngaySinhRaw = parts[4];      // [4] Ngày sinh (DDMMYYYY)
+        const diaChiFull = parts[5];       // [5] Địa chỉ thường trú
+        const ngayCapRaw = parts[6] || ''; // [6] Ngày cấp CCCD (DDMMYYYY) - optional
+        
+        debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', GT: ' + gioiTinh);
+        
+        // Validate: hoTen không được chứa toàn số
+        if (/^\d+$/.test(hoTen.replace(/\s/g, ''))) {
+          debug('ERROR: hoTen chứa toàn số, có thể parse sai format!');
+          return null; // Trả về null để fallback sang AI OCR
+        }
         
         // Parse ngày sinh từ DDMMYYYY sang DD/MM/YYYY
         let ngaySinh = '';
-        if (ngaySinhRaw && ngaySinhRaw.length === 8) {
+        if (ngaySinhRaw && ngaySinhRaw.length === 8 && /^\d{8}$/.test(ngaySinhRaw)) {
           ngaySinh = ngaySinhRaw.substring(0, 2) + '/' + 
                      ngaySinhRaw.substring(2, 4) + '/' + 
                      ngaySinhRaw.substring(4, 8);
         }
         
-        // Parse địa chỉ
+        // Parse ngày cấp từ DDMMYYYY sang DD/MM/YYYY
+        let ngayCap = '';
+        if (ngayCapRaw && ngayCapRaw.length === 8 && /^\d{8}$/.test(ngayCapRaw)) {
+          ngayCap = ngayCapRaw.substring(0, 2) + '/' + 
+                     ngayCapRaw.substring(2, 4) + '/' + 
+                     ngayCapRaw.substring(4, 8);
+        }
+        
+        // Parse địa chỉ thành các thành phần
         const addressParts = diaChiFull.split(',').map(p => p.trim());
         let tinh = '', huyen = '', xa = '', chiTiet = '';
         
         if (addressParts.length >= 4) {
+          // Format: Chi tiết, Xã, Huyện, Tỉnh
           chiTiet = addressParts.slice(0, -3).join(', ');
           xa = addressParts[addressParts.length - 3];
           huyen = addressParts[addressParts.length - 2];
@@ -1135,17 +1162,19 @@
           tinh = diaChiFull;
         }
         
-        debug('QR parsed successfully: ' + hoTen);
+        debug('QR parsed successfully: ' + hoTen + ' - ' + soCCCD);
         
         return {
           fromQR: true,
           loaiGiayTo: 'CCCD',
-          soGiayTo: soGiayTo,
+          soGiayTo: soCCCD,        // Sử dụng số CCCD (12 số)
+          soCMNDCu: soCMND,        // Lưu số CMND cũ riêng (nếu cần)
           hoTen: hoTen,
           ngaySinh: ngaySinh,
           gioiTinh: gioiTinh,
           quocTich: 'Việt Nam',
           noiThuongTru: diaChiFull,
+          ngayCap: ngayCap,
           tinhThanh: tinh,
           quanHuyen: huyen,
           phuongXa: xa,
