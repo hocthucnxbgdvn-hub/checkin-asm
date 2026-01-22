@@ -6,9 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Light Hotel - Check-in ASM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)" rel="stylesheet">
+  <script src="[https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js](https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js)"></script>
   <style>
     * {
       margin: 0;
@@ -659,7 +659,7 @@
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.1 ASM (Fix QR)<br>
+      Light Hotel © 2025 | Version 2.4.3 ASM (Fix Addr)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -668,7 +668,7 @@
   
   <script>
     // ========== CẤU HÌNH ==========
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec';
+    const APPS_SCRIPT_URL = '[https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec](https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec)';
     
     // Debug mode - set true để xem thông tin debug
     const DEBUG_MODE = true;
@@ -1108,17 +1108,16 @@
           return null;
         }
         
-	// Parse theo format 7 trường CHUẨN QR CCCD Việt Nam
-        // Format: SốCCCD|SốCMND|HọTên|NgàySinh|GiớiTính|ĐịaChỉ|NgàyCấp
-        const soCCCD = parts[0];              // [0] Số CCCD (12 số)
-        const soCMND = parts[1];              // [1] Số CMND cũ (9 số) - có thể rỗng
+        // Parse theo format 7 trường CHUẨN
+        const soCCCD = parts[0];           // [0] Số CCCD (12 số)
+        const soCMND = parts[1];           // [1] Số CMND cũ (9 số) - có thể rỗng
         const hoTen = parts[2].toUpperCase(); // [2] Họ và tên
-        const ngaySinhRaw = parts[3];         // [3] Ngày sinh (DDMMYYYY) ← ĐÃ SỬA
-        const gioiTinh = parts[4];            // [4] Giới tính (Nam/Nữ) ← ĐÃ SỬA
-        const diaChiFull = parts[5];          // [5] Địa chỉ thường trú
-        const ngayCapRaw = parts[6] || '';    // [6] Ngày cấp CCCD (DDMMYYYY) - optional
+        const gioiTinh = parts[3];         // [3] Giới tính (Nam/Nữ)
+        const ngaySinhRaw = parts[4];      // [4] Ngày sinh (DDMMYYYY)
+        const diaChiFull = parts[5];       // [5] Địa chỉ thường trú
+        const ngayCapRaw = parts[6] || ''; // [6] Ngày cấp CCCD (DDMMYYYY) - optional
         
-	debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', Sinh: ' + ngaySinhRaw + ', GT: ' + gioiTinh);
+        debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', GT: ' + gioiTinh);
         
         // Validate: hoTen không được chứa toàn số
         if (/^\d+$/.test(hoTen.replace(/\s/g, ''))) {
@@ -1259,8 +1258,14 @@
         if (result.success) {
           const info = result.data.info;
           const source = result.data.source || 'AI'; // 'QR' hoặc 'AI'
-          showStatus('success', 'Check-in thành công!', 
-            `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
+          
+          // === MỚI: Hiển thị cảnh báo địa chỉ nếu có ===
+          if (result.data.warning) {
+            showStatus('info', '⚠️ Cần kiểm tra địa chỉ', result.data.warning);
+          } else {
+            showStatus('success', 'Check-in thành công!', 
+              `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
+          }
           
           resultContent.innerHTML = `
             <div class="result-row">
