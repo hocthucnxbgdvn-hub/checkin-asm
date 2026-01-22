@@ -1288,6 +1288,96 @@
       }
     }
 
+    // ========== NEW CHECKIN - Reset form cho khách mới ==========
+    function newCheckin() {
+      debug('=== BẮT ĐẦU RESET FORM CHO KHÁCH MỚI ===');
+      
+      // 1. Reset ảnh đã chụp
+      capturedImage = null;
+      preview.style.display = 'none';
+      video.style.display = 'none';
+      placeholder.style.display = 'flex';
+      
+      // 2. Dừng camera stream nếu đang chạy
+      stopCamera();
+      
+      // 3. Reset camera buttons về trạng thái ban đầu
+      btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
+      btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
+      btnCamera.style.display = 'flex';
+      btnGallery.style.display = 'flex';
+      btnRetake.style.display = 'none';
+      
+      // 4. Reset room selection (BỎ CHỌN PHÒNG - để người dùng chọn lại)
+      selectedRoom = '';
+      document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
+      
+      // 5. Reset các toggle buttons về mặc định
+      // Loại khách: Việt Nam
+      document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-guest="vn"]').classList.add('active');
+      isVietnamese = true;
+      vnExtraFields.style.display = 'block';
+      
+      // Lý do lưu trú: Du lịch
+      document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-reason="Du lịch"]').classList.add('active');
+      lyDoLuuTru = 'Du lịch';
+      
+      // Loại cư trú: Thường trú
+      document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-residence="Thường trú"]').classList.add('active');
+      loaiCuTru = 'Thường trú';
+      
+      // 6. Reset các trường input
+      document.getElementById('phone').value = '';
+      document.getElementById('checkoutDate').value = getTomorrow();
+      
+      // 7. Ẩn kết quả và status cũ
+      resultCard.classList.remove('show');
+      hideStatus();
+      cameraError.classList.remove('show');
+      exportInfo.classList.remove('show');
+      
+      // 8. Disable nút submit (phải chọn lại phòng + ảnh)
+      btnSubmit.disabled = true;
+      
+      // 9. Scroll lên đầu trang
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      debug('Form đã reset xong - sẵn sàng check-in khách mới');
+    }
+
+    // ========== EXPORT ASM - Xuất dữ liệu hôm nay ==========
+    function exportASM() {
+      debug('Đang xuất dữ liệu ASM...');
+      
+      showStatus('loading', 'Đang xử lý...', 'Đang tạo file xuất ASM...');
+      
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({
+          action: 'export_asm'
+        })
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          showStatus('success', 'Xuất ASM thành công!', result.data.message || `Đã xuất ${result.data.count} khách`);
+          exportInfo.classList.add('show');
+        } else {
+          showStatus('error', 'Lỗi xuất ASM', result.error || 'Không thể xuất dữ liệu');
+        }
+      })
+      .catch(error => {
+        debug('Export error: ' + error.message);
+        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
+      });
+    }
+
     // ========== EVENT LISTENERS ==========
     // Camera button - behavior depends on device
     btnCamera.addEventListener('click', function() {
