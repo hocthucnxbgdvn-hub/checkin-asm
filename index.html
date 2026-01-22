@@ -1108,16 +1108,17 @@
           return null;
         }
         
-        // Parse theo format 7 trường CHUẨN
-        const soCCCD = parts[0];           // [0] Số CCCD (12 số)
-        const soCMND = parts[1];           // [1] Số CMND cũ (9 số) - có thể rỗng
+	// Parse theo format 7 trường CHUẨN QR CCCD Việt Nam
+        // Format: SốCCCD|SốCMND|HọTên|NgàySinh|GiớiTính|ĐịaChỉ|NgàyCấp
+        const soCCCD = parts[0];              // [0] Số CCCD (12 số)
+        const soCMND = parts[1];              // [1] Số CMND cũ (9 số) - có thể rỗng
         const hoTen = parts[2].toUpperCase(); // [2] Họ và tên
-        const gioiTinh = parts[3];         // [3] Giới tính (Nam/Nữ)
-        const ngaySinhRaw = parts[4];      // [4] Ngày sinh (DDMMYYYY)
-        const diaChiFull = parts[5];       // [5] Địa chỉ thường trú
-        const ngayCapRaw = parts[6] || ''; // [6] Ngày cấp CCCD (DDMMYYYY) - optional
+        const ngaySinhRaw = parts[3];         // [3] Ngày sinh (DDMMYYYY) ← ĐÃ SỬA
+        const gioiTinh = parts[4];            // [4] Giới tính (Nam/Nữ) ← ĐÃ SỬA
+        const diaChiFull = parts[5];          // [5] Địa chỉ thường trú
+        const ngayCapRaw = parts[6] || '';    // [6] Ngày cấp CCCD (DDMMYYYY) - optional
         
-        debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', GT: ' + gioiTinh);
+	debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', Sinh: ' + ngaySinhRaw + ', GT: ' + gioiTinh);
         
         // Validate: hoTen không được chứa toàn số
         if (/^\d+$/.test(hoTen.replace(/\s/g, ''))) {
