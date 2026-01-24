@@ -6,9 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Light Hotel - Check-in ASM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)" rel="stylesheet">
+  <script src="[https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js](https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js)"></script>
   
   <style>
     * {
@@ -517,6 +517,99 @@
     .export-info.show {
       display: block;
     }
+
+    /* ========== IMAGE TABS - Hỗ trợ 2 ảnh ========== */
+    .image-tabs {
+      display: none;  /* Ẩn mặc định, hiện khi có ảnh */
+      margin-bottom: 12px;
+    }
+
+    .image-tabs.show {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid #e8eaed;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #5f6368;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+
+    .tab-btn.active {
+      background: #e8f0fe;
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+
+    .tab-btn.has-image::after {
+      content: ' ✓';
+      color: #34a853;
+    }
+
+    .tab-btn.no-image::after {
+      content: ' +';
+      color: #1a73e8;
+    }
+
+    /* Nút thêm mặt sau */
+    .btn-add-back {
+      padding: 14px 20px;
+      border: 2px dashed #1a73e8;
+      border-radius: 12px;
+      background: #e8f0fe;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a73e8;
+      cursor: pointer;
+      display: none;  /* Ẩn mặc định */
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .btn-add-back:hover {
+      background: #d2e3fc;
+      border-style: solid;
+    }
+
+    .btn-add-back.show {
+      display: flex;
+    }
+
+    /* Ghi chú nhắc nhở */
+    .hint-text {
+      font-size: 0.8rem;
+      color: #5f6368;
+      text-align: center;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .hint-text.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -600,6 +693,11 @@
         <div class="camera-section">
           <div id="cameraError" class="camera-error"></div>
           
+          <div class="image-tabs" id="imageTabs">
+            <button class="tab-btn active has-image" id="tabFront" data-tab="front">Mặt trước</button>
+            <button class="tab-btn no-image" id="tabBack" data-tab="back">Mặt sau</button>
+          </div>
+          
           <div class="camera-container" id="cameraContainer">
             <video id="video" autoplay playsinline muted></video>
             <img id="preview" alt="Preview">
@@ -620,11 +718,18 @@
             <button class="btn-retake" id="btnRetake">
               <span>🔄</span> Chụp/Chọn lại
             </button>
+            <button class="btn-add-back" id="btnAddBack">
+              <span>➕</span> Thêm mặt sau
+            </button>
           </div>
           
           <input type="file" id="fileInput" accept="image/*">
 
           <input type="file" id="cameraInput" accept="image/*" capture="environment">
+          
+          <div class="hint-text" id="hintText">
+            ℹ️ Nếu địa chỉ ở mặt sau, hãy thêm ảnh mặt sau
+          </div>
           
           <div id="debugInfo" class="debug-info"></div>
         </div>
@@ -660,7 +765,7 @@
     </div>
     
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.3 ASM (Fix Addr)<br>
+      Light Hotel © 2025 | Version 2.4.5 (2-Image Support)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -669,7 +774,7 @@
   
   <script>
     // ========== CẤU HÌNH ==========
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec';
+    const APPS_SCRIPT_URL = '[https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec](https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec)';
     // Debug mode - set true để xem thông tin debug
     const DEBUG_MODE = true;
     
@@ -678,7 +783,15 @@
     let isVietnamese = true;
     let lyDoLuuTru = 'Du lịch';
     let loaiCuTru = 'Thường trú';
-    let capturedImage = null;
+    
+    // === MỚI: Hỗ trợ 2 ảnh ===
+    let capturedImages = {
+      front: null,    // Ảnh mặt trước (base64)
+      back: null      // Ảnh mặt sau (base64) - có thể null
+    };
+    let imageSource = null;   // 'camera' hoặc 'gallery' - nguồn ảnh đầu tiên
+    let activeTab = 'front';  // Tab đang hiển thị: 'front' hoặc 'back'
+    
     let stream = null;
     let cameraActive = false;
     let isMobile = false;
@@ -701,6 +814,13 @@
     const vnExtraFields = document.getElementById('vnExtraFields');
     const debugInfo = document.getElementById('debugInfo');
     const exportInfo = document.getElementById('exportInfo');
+    
+    // === MỚI: Elements cho 2 ảnh ===
+    const imageTabs = document.getElementById('imageTabs');
+    const tabFront = document.getElementById('tabFront');
+    const tabBack = document.getElementById('tabBack');
+    const btnAddBack = document.getElementById('btnAddBack');
+    const hintText = document.getElementById('hintText');
     
     // ========== DETECT DEVICE ==========
     function detectDevice() {
@@ -889,30 +1009,47 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      capturedImage = canvas.toDataURL('image/jpeg', 0.85);
+      const capturedImage = canvas.toDataURL('image/jpeg', 0.85);
       debug('Ảnh đã chụp, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
       
+      // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
+      if (!capturedImages.front) {
+        imageSource = 'camera';
+        debug('Image source set to: camera');
+      }
+
       showPreview(capturedImage);
       stopCamera();
     }
     
     function showPreview(imageData) {
+      // Lưu ảnh vào đúng slot (front hoặc back)
+      capturedImages[activeTab] = imageData;
+      
       preview.src = imageData;
       preview.style.display = 'block';
       video.style.display = 'none';
       placeholder.style.display = 'none';
       
-      btnCamera.style.display = 'none';
-      btnGallery.style.display = 'none';
-      btnRetake.style.display = 'flex';
+      // Update UI
+      updateTabsUI();
+      updateButtonsForTab();
       
       cameraError.classList.remove('show');
       updateSubmitButton();
-      debug('Hiển thị preview ảnh');
+      debug('Lưu ảnh vào tab: ' + activeTab);
     }
     
     function resetCamera() {
-      capturedImage = null;
+      // Reset ảnh của tab hiện tại
+      capturedImages[activeTab] = null;
+      
+      // Nếu reset tab front, cũng reset tab back
+      if (activeTab === 'front') {
+        capturedImages.back = null;
+        imageSource = null;
+      }
+      
       stopCamera();
       
       preview.style.display = 'none';
@@ -920,17 +1057,205 @@
       placeholder.style.display = 'flex';
       
       btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
-      // Reset onclick dựa trên device
       btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
-      btnCamera.style.display = 'flex';
-      btnGallery.style.display = 'flex';
-      btnRetake.style.display = 'none';
+      
+      // Update UI
+      updateTabsUI();
+      updateButtonsForTab();
+      
+      // Nếu không còn ảnh nào, reset về tab front
+      if (!capturedImages.front && !capturedImages.back) {
+        activeTab = 'front';
+        imageTabs.classList.remove('show');
+        hintText.classList.remove('hidden');
+      }
       
       cameraError.classList.remove('show');
       updateSubmitButton();
-      debug('Reset camera UI');
+      debug('Reset camera UI cho tab: ' + activeTab);
     }
     
+    // ========== XỬ LÝ 2 ẢNH (MẶT TRƯỚC + MẶT SAU) ==========
+
+    /**
+     * Chuyển tab hiển thị
+     */
+    function switchTab(tab) {
+      activeTab = tab;
+      
+      // Update UI tabs
+      tabFront.classList.toggle('active', tab === 'front');
+      tabBack.classList.toggle('active', tab === 'back');
+      
+      // Hiển thị ảnh tương ứng
+      const imageToShow = capturedImages[tab];
+      if (imageToShow) {
+        preview.src = imageToShow;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        preview.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+      
+      // Update nút bấm theo tab
+      updateButtonsForTab();
+      
+      debug('Switched to tab: ' + tab);
+    }
+
+    /**
+     * Cập nhật trạng thái các nút theo tab hiện tại
+     */
+    function updateButtonsForTab() {
+      const hasCurrentImage = capturedImages[activeTab] !== null;
+      const hasFrontImage = capturedImages.front !== null;
+      const hasBackImage = capturedImages.back !== null;
+      
+      if (hasCurrentImage) {
+        // Có ảnh ở tab hiện tại
+        btnCamera.style.display = 'none';
+        btnGallery.style.display = 'none';
+        btnRetake.style.display = 'flex';
+        
+        // Hiển thị nút "Thêm mặt sau" nếu đang ở tab front và chưa có ảnh back
+        if (activeTab === 'front' && !hasBackImage) {
+          btnAddBack.classList.add('show');
+        } else {
+          btnAddBack.classList.remove('show');
+        }
+      } else {
+        // Chưa có ảnh ở tab hiện tại
+        btnCamera.style.display = 'flex';
+        btnGallery.style.display = 'flex';
+        btnRetake.style.display = 'none';
+        btnAddBack.classList.remove('show');
+      }
+      
+      // Ẩn ghi chú khi đã có ảnh back hoặc đang ở tab back
+      if (hasBackImage || activeTab === 'back') {
+        hintText.classList.add('hidden');
+      } else if (hasFrontImage) {
+        hintText.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Cập nhật UI tabs
+     */
+    function updateTabsUI() {
+      const hasFront = capturedImages.front !== null;
+      const hasBack = capturedImages.back !== null;
+      
+      // Hiển thị tabs khi có ít nhất 1 ảnh
+      if (hasFront || hasBack) {
+        imageTabs.classList.add('show');
+      } else {
+        imageTabs.classList.remove('show');
+      }
+      
+      // Update class cho tabs
+      tabFront.classList.toggle('has-image', hasFront);
+      tabFront.classList.toggle('no-image', !hasFront);
+      tabBack.classList.toggle('has-image', hasBack);
+      tabBack.classList.toggle('no-image', !hasBack);
+    }
+
+    /**
+     * Xử lý khi nhấn "Thêm mặt sau"
+     */
+    function handleAddBackImage() {
+      debug('Thêm ảnh mặt sau, nguồn: ' + imageSource);
+      
+      // Chuyển sang tab back
+      switchTab('back');
+      
+      // Mở camera hoặc gallery tùy theo nguồn ảnh 1
+      if (imageSource === 'camera') {
+        // Mở camera
+        if (isMobile) {
+          openCameraOnMobile();
+        } else {
+          startCameraOnDesktop();
+        }
+      } else {
+        // Mở thư viện
+        openGallery();
+      }
+    }
+
+    /**
+     * Ghép 2 ảnh theo chiều DỌC (mặt trước ở trên, mặt sau ở dưới)
+     * @returns {string} Base64 của ảnh đã ghép
+     */
+    function mergeImages() {
+      return new Promise((resolve, reject) => {
+        const frontBase64 = capturedImages.front;
+        const backBase64 = capturedImages.back;
+        
+        // Nếu chỉ có 1 ảnh, trả về luôn
+        if (!backBase64) {
+          debug('Chỉ có 1 ảnh, không cần ghép');
+          resolve(frontBase64);
+          return;
+        }
+        
+        debug('Bắt đầu ghép 2 ảnh...');
+        
+        const imgFront = new Image();
+        const imgBack = new Image();
+        let loadedCount = 0;
+        
+        const onLoad = () => {
+          loadedCount++;
+          if (loadedCount < 2) return;
+          
+          // Tính toán kích thước
+          // Resize cả 2 về cùng chiều rộng, giữ tỷ lệ
+          const targetWidth = Math.max(imgFront.width, imgBack.width);
+          
+          const frontHeight = (imgFront.height / imgFront.width) * targetWidth;
+          const backHeight = (imgBack.height / imgBack.width) * targetWidth;
+          
+          const totalHeight = frontHeight + backHeight;
+          
+          debug(`Ghép ảnh: ${targetWidth}x${totalHeight} (front: ${targetWidth}x${frontHeight}, back: ${targetWidth}x${backHeight})`);
+          
+          // Tạo canvas ghép
+          const mergeCanvas = document.createElement('canvas');
+          mergeCanvas.width = targetWidth;
+          mergeCanvas.height = totalHeight;
+          
+          const ctx = mergeCanvas.getContext('2d');
+          
+          // Vẽ ảnh mặt trước ở trên
+          ctx.drawImage(imgFront, 0, 0, targetWidth, frontHeight);
+          
+          // Vẽ ảnh mặt sau ở dưới
+          ctx.drawImage(imgBack, 0, frontHeight, targetWidth, backHeight);
+          
+          // Xuất base64
+          const mergedBase64 = mergeCanvas.toDataURL('image/jpeg', 0.85);
+          debug('Ghép ảnh thành công, size: ' + Math.round(mergedBase64.length / 1024) + 'KB');
+          
+          resolve(mergedBase64);
+        };
+        
+        const onError = (err) => {
+          debug('Lỗi load ảnh để ghép: ' + err);
+          reject(err);
+        };
+        
+        imgFront.onload = onLoad;
+        imgBack.onload = onLoad;
+        imgFront.onerror = onError;
+        imgBack.onerror = onError;
+        
+        imgFront.src = frontBase64;
+        imgBack.src = backBase64;
+      });
+    }
+
     // ========== FILE INPUT (Gallery) - Không có capture ==========
     function openGallery() {
       debug('Mở thư viện ảnh...');
@@ -946,6 +1271,12 @@
       
       debug('File được chọn: ' + file.name + ', size: ' + Math.round(file.size / 1024) + 'KB');
       
+      // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
+      if (!capturedImages.front) {
+        imageSource = 'gallery';
+        debug('Image source set to: gallery');
+      }
+
       // Kiểm tra loại file
       if (!file.type.startsWith('image/')) {
         showCameraError('Vui lòng chọn file ảnh (JPG, PNG...)');
@@ -960,7 +1291,7 @@
       
       const reader = new FileReader();
       reader.onload = function(event) {
-        capturedImage = event.target.result;
+        const capturedImage = event.target.result;
         debug('Ảnh đã load, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
         showPreview(capturedImage);
       };
@@ -977,6 +1308,13 @@
     // ========== CAMERA INPUT (Mobile camera capture) ==========
     function handleCameraCapture(e) {
       debug('Xử lý ảnh từ camera mobile...');
+      
+      // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
+      if (!capturedImages.front) {
+        imageSource = 'camera';
+        debug('Image source set to: camera');
+      }
+
       handleFileSelect(e);
     }
     
@@ -1022,7 +1360,8 @@
     
     // ========== VALIDATION ==========
     function updateSubmitButton() {
-      const canSubmit = selectedRoom && capturedImage;
+      // Chỉ cần có ảnh mặt trước là đủ để submit
+      const canSubmit = selectedRoom && capturedImages.front;
       btnSubmit.disabled = !canSubmit;
       debug('Submit button: ' + (canSubmit ? 'enabled' : 'disabled'));
     }
@@ -1196,7 +1535,7 @@
     
     // ========== SUBMIT ==========
     async function submitCheckin() {
-      if (!selectedRoom || !capturedImage) {
+      if (!selectedRoom || !capturedImages.front) {
         showStatus('error', 'Thiếu thông tin', 'Vui lòng chọn phòng và chụp ảnh giấy tờ');
         return;
       }
@@ -1209,12 +1548,24 @@
       btnSubmit.disabled = true;
       resultCard.classList.remove('show');
       
+      // BƯỚC 0: Ghép ảnh nếu có 2 ảnh
+      showStatus('loading', 'Đang xử lý...', capturedImages.back ? 'Đang ghép ảnh...' : 'Đang kiểm tra mã QR...');
+
+      let finalImage;
+      try {
+        finalImage = await mergeImages();
+        debug('Ảnh cuối cùng size: ' + Math.round(finalImage.length / 1024) + 'KB');
+      } catch (err) {
+        debug('Lỗi ghép ảnh: ' + err);
+        finalImage = capturedImages.front;
+      }
+      
       // BƯỚC 1: Thử đọc QR Code trước
       showStatus('loading', 'Đang xử lý...', 'Đang kiểm tra mã QR...');
       
       let qrData = null;
       try {
-        qrData = await tryReadQRCode(capturedImage);
+        qrData = await tryReadQRCode(finalImage);
       } catch (e) {
         debug('QR read error: ' + e.message);
       }
@@ -1227,7 +1578,7 @@
       try {
         const requestBody = {
           action: 'checkin',
-          image: capturedImage,
+          image: finalImage,
           roomNumber: selectedRoom,
           checkoutDate: document.getElementById('checkoutDate').value,
           lyDoLuuTru: lyDoLuuTru,
@@ -1329,7 +1680,11 @@
       debug('=== BẮT ĐẦU RESET FORM CHO KHÁCH MỚI ===');
       
       // 1. Reset ảnh đã chụp
-      capturedImage = null;
+      // Reset ảnh của tab hiện tại
+      capturedImages = { front: null, back: null };
+      activeTab = 'front';
+      imageSource = null;
+      
       preview.style.display = 'none';
       video.style.display = 'none';
       placeholder.style.display = 'flex';
@@ -1340,9 +1695,11 @@
       // 3. Reset camera buttons về trạng thái ban đầu
       btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
       btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
-      btnCamera.style.display = 'flex';
-      btnGallery.style.display = 'flex';
-      btnRetake.style.display = 'none';
+      
+      updateTabsUI();
+      updateButtonsForTab();
+      imageTabs.classList.remove('show');
+      hintText.classList.remove('hidden');
       
       // 4. Reset room selection (BỎ CHỌN PHÒNG - để người dùng chọn lại)
       selectedRoom = '';
@@ -1428,6 +1785,11 @@
     btnRetake.addEventListener('click', resetCamera);
     btnSubmit.addEventListener('click', submitCheckin);
     
+    // === Event listeners cho tabs và nút thêm mặt sau ===
+    tabFront.addEventListener('click', () => switchTab('front'));
+    tabBack.addEventListener('click', () => switchTab('back'));
+    btnAddBack.addEventListener('click', handleAddBackImage);
+
     // File inputs - mỗi input chỉ xử lý 1 lần
     fileInput.addEventListener('change', function(e) {
       if (e.target.files && e.target.files[0]) {
@@ -1437,7 +1799,7 @@
 
     cameraInput.addEventListener('change', function(e) {
       if (e.target.files && e.target.files[0]) {
-        handleFileSelect(e);
+        handleCameraCapture(e);
         // Reset để có thể chụp lại
         cameraInput.value = '';
       }
