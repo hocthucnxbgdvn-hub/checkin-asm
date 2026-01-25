@@ -637,6 +637,7 @@
       <div class="form-section">
         <div class="section-title">1. Chọn phòng <span class="required">*</span></div>
         <div class="room-grid" id="roomGrid">
+          <button class="room-btn" data-room="201">201</button>
           <button class="room-btn" data-room="301">301</button>
           <button class="room-btn" data-room="302">302</button>
           <button class="room-btn" data-room="303">303</button>
@@ -789,7 +790,7 @@
     </div>
 
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.7 (Enhanced Image Processing)<br>
+      Light Hotel © 2025 | Version 2.4.8 (Smart Address & Model Swap)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -1697,9 +1698,9 @@
           const info = result.data.info;
           const source = result.data.source || 'AI'; // 'QR' hoặc 'AI'
 
-          // === MỚI: Hiển thị cảnh báo địa chỉ nếu có ===
+          // === MỚI: Hiển thị cảnh báo địa chỉ nếu có (Kể cả khi thành công) ===
           if (result.data.warning) {
-            showStatus('info', '⚠️ Cần kiểm tra địa chỉ', result.data.warning);
+            showStatus('info', '⚠️ Cần kiểm tra lại', result.data.warning);
           } else {
             showStatus('success', 'Check-in thành công!',
               `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
