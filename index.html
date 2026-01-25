@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,56 +10,56 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-  
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
       min-height: 100vh;
       padding: 12px;
     }
-    
+
     .container {
       max-width: 480px;
       margin: 0 auto;
       background: #fff;
       border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       overflow: hidden;
     }
-    
+
     .header {
       background: linear-gradient(135deg, #1a73e8 0%, #1565c0 100%);
       color: white;
       padding: 20px;
       text-align: center;
     }
-    
+
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 4px;
     }
-    
+
     .header p {
       opacity: 0.9;
       font-size: 0.9rem;
     }
-    
+
     .content {
       padding: 20px;
     }
-    
+
     .form-section {
       margin-bottom: 20px;
     }
-    
+
     .section-title {
       font-size: 0.85rem;
       font-weight: 600;
@@ -68,7 +69,7 @@
       align-items: center;
       gap: 8px;
     }
-    
+
     .section-title::before {
       content: '';
       width: 4px;
@@ -76,21 +77,21 @@
       background: #1a73e8;
       border-radius: 2px;
     }
-    
+
     .required {
       color: #ea4335;
     }
-    
+
     .form-row {
       display: flex;
       gap: 12px;
       margin-bottom: 12px;
     }
-    
+
     .form-group {
       flex: 1;
     }
-    
+
     label {
       display: block;
       font-size: 0.8rem;
@@ -98,8 +99,11 @@
       color: #5f6368;
       margin-bottom: 6px;
     }
-    
-    select, input[type="text"], input[type="tel"], input[type="date"] {
+
+    select,
+    input[type="text"],
+    input[type="tel"],
+    input[type="date"] {
       width: 100%;
       padding: 12px 14px;
       border: 2px solid #e8eaed;
@@ -109,19 +113,20 @@
       transition: all 0.2s;
       background: #fff;
     }
-    
-    select:focus, input:focus {
+
+    select:focus,
+    input:focus {
       outline: none;
       border-color: #1a73e8;
-      box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
     }
-    
+
     .toggle-group {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
-    
+
     .toggle-btn {
       flex: 1;
       min-width: 80px;
@@ -136,18 +141,18 @@
       transition: all 0.2s;
       text-align: center;
     }
-    
+
     .toggle-btn:hover {
       border-color: #1a73e8;
       color: #1a73e8;
     }
-    
+
     .toggle-btn.active {
       background: #1a73e8;
       border-color: #1a73e8;
       color: white;
     }
-    
+
     /* Camera Section */
     .camera-section {
       background: #f8f9fa;
@@ -155,7 +160,7 @@
       padding: 16px;
       margin-bottom: 20px;
     }
-    
+
     .camera-container {
       position: relative;
       width: 100%;
@@ -168,42 +173,42 @@
       align-items: center;
       justify-content: center;
     }
-    
+
     #video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: none;
     }
-    
+
     #preview {
       width: 100%;
       height: 100%;
       object-fit: contain;
       display: none;
     }
-    
+
     .camera-placeholder {
       text-align: center;
       color: #9aa0a6;
       padding: 20px;
     }
-    
+
     .camera-placeholder .icon {
       font-size: 3rem;
       margin-bottom: 12px;
     }
-    
+
     .camera-placeholder .text {
       font-size: 0.9rem;
       margin-bottom: 8px;
     }
-    
+
     .camera-placeholder .subtext {
       font-size: 0.8rem;
       color: #bdc1c6;
     }
-    
+
     .camera-error {
       background: #fce8e6;
       color: #c5221f;
@@ -213,19 +218,21 @@
       margin-bottom: 12px;
       display: none;
     }
-    
+
     .camera-error.show {
       display: block;
     }
-    
+
     .camera-buttons {
       display: flex;
       gap: 12px;
       justify-content: center;
       flex-wrap: wrap;
     }
-    
-    .btn-camera, .btn-gallery, .btn-retake {
+
+    .btn-camera,
+    .btn-gallery,
+    .btn-retake {
       padding: 14px 20px;
       border: none;
       border-radius: 12px;
@@ -240,47 +247,48 @@
       justify-content: center;
       min-width: 140px;
     }
-    
+
     .btn-camera {
       background: linear-gradient(135deg, #1a73e8 0%, #1565c0 100%);
       color: white;
     }
-    
+
     .btn-camera:hover:not(:disabled) {
       transform: scale(1.02);
-      box-shadow: 0 4px 15px rgba(26,115,232,0.4);
+      box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
     }
-    
+
     .btn-camera:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
+
     .btn-gallery {
       background: #fff;
       color: #1a73e8;
       border: 2px solid #1a73e8;
     }
-    
+
     .btn-gallery:hover {
       background: #e8f0fe;
     }
-    
+
     .btn-retake {
       background: #f1f3f4;
       color: #5f6368;
       display: none;
     }
-    
+
     .btn-retake:hover {
       background: #e8eaed;
     }
-    
+
     /* Hidden file inputs */
-    #fileInput, #cameraInput {
+    #fileInput,
+    #cameraInput {
       display: none;
     }
-    
+
     /* Submit Button */
     .btn-submit {
       width: 100%;
@@ -298,17 +306,17 @@
       justify-content: center;
       gap: 10px;
     }
-    
+
     .btn-submit:hover:not(:disabled) {
       transform: scale(1.01);
-      box-shadow: 0 4px 15px rgba(52,168,83,0.4);
+      box-shadow: 0 4px 15px rgba(52, 168, 83, 0.4);
     }
-    
+
     .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-    
+
     /* Status Messages */
     .status {
       padding: 14px 16px;
@@ -319,45 +327,45 @@
       align-items: flex-start;
       gap: 10px;
     }
-    
+
     .status.show {
       display: flex;
     }
-    
+
     .status.loading {
       background: #e8f0fe;
       color: #1a73e8;
     }
-    
+
     .status.success {
       background: #e6f4ea;
       color: #1e8e3e;
     }
-    
+
     .status.error {
       background: #fce8e6;
       color: #c5221f;
     }
-    
+
     .status.info {
       background: #fff3e0;
       color: #e65100;
     }
-    
+
     .status-icon {
       font-size: 1.2rem;
       flex-shrink: 0;
     }
-    
+
     .status-content {
       flex: 1;
     }
-    
+
     .status-content strong {
       display: block;
       margin-bottom: 4px;
     }
-    
+
     /* Result Card */
     .result-card {
       background: #f8f9fa;
@@ -366,11 +374,11 @@
       margin-top: 16px;
       display: none;
     }
-    
+
     .result-card.show {
       display: block;
     }
-    
+
     .result-title {
       font-weight: 600;
       color: #1a73e8;
@@ -379,7 +387,7 @@
       align-items: center;
       gap: 8px;
     }
-    
+
     .result-row {
       display: flex;
       justify-content: space-between;
@@ -387,44 +395,46 @@
       border-bottom: 1px solid #e8eaed;
       font-size: 0.9rem;
     }
-    
+
     .result-row:last-child {
       border-bottom: none;
     }
-    
+
     .result-label {
       color: #5f6368;
     }
-    
+
     .result-value {
       font-weight: 500;
       color: #202124;
       text-align: right;
       max-width: 60%;
     }
-    
+
     /* Spinner */
     .spinner {
       width: 20px;
       height: 20px;
-      border: 3px solid rgba(26,115,232,0.3);
+      border: 3px solid rgba(26, 115, 232, 0.3);
       border-top-color: #1a73e8;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       display: inline-block;
     }
-    
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
-    
+
     /* Room Grid */
     .room-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
-    
+
     .room-btn {
       padding: 12px 8px;
       border: 2px solid #e8eaed;
@@ -436,18 +446,18 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    
+
     .room-btn:hover {
       border-color: #1a73e8;
       color: #1a73e8;
     }
-    
+
     .room-btn.selected {
       background: #1a73e8;
       border-color: #1a73e8;
       color: white;
     }
-    
+
     /* Quick Actions */
     .quick-actions {
       display: flex;
@@ -456,7 +466,7 @@
       padding-top: 16px;
       border-top: 1px solid #e8eaed;
     }
-    
+
     .btn-quick {
       flex: 1;
       padding: 12px;
@@ -469,12 +479,12 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    
+
     .btn-quick:hover {
       border-color: #1a73e8;
       color: #1a73e8;
     }
-    
+
     /* Footer */
     .footer {
       text-align: center;
@@ -483,7 +493,7 @@
       font-size: 0.75rem;
       border-top: 1px solid #e8eaed;
     }
-    
+
     /* Debug info */
     .debug-info {
       background: #f1f3f4;
@@ -497,7 +507,7 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
-    
+
     .debug-info.show {
       display: block;
     }
@@ -520,7 +530,8 @@
 
     /* ========== IMAGE TABS - Hỗ trợ 2 ảnh ========== */
     .image-tabs {
-      display: none;  /* Ẩn mặc định, hiện khi có ảnh */
+      display: none;
+      /* Ẩn mặc định, hiện khi có ảnh */
       margin-bottom: 12px;
     }
 
@@ -574,7 +585,8 @@
       font-weight: 600;
       color: #1a73e8;
       cursor: pointer;
-      display: none;  /* Ẩn mặc định */
+      display: none;
+      /* Ẩn mặc định */
       align-items: center;
       justify-content: center;
       gap: 8px;
@@ -612,19 +624,16 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
       <h1>🏨 Light Hotel</h1>
       <p>Check-in ASM</p>
     </div>
-    
+
     <div class="content">
-      <div id="status" class="status">
-        <span class="status-icon"></span>
-        <div class="status-content"></div>
-      </div>
-      
+
       <div class="form-section">
         <div class="section-title">1. Chọn phòng <span class="required">*</span></div>
         <div class="room-grid" id="roomGrid">
@@ -646,7 +655,7 @@
           <button class="room-btn" data-room="703">703</button>
         </div>
       </div>
-      
+
       <div class="form-section">
         <div class="section-title">2. Loại khách</div>
         <div class="toggle-group">
@@ -654,7 +663,7 @@
           <button class="toggle-btn" data-guest="foreign">🌐 Nước ngoài</button>
         </div>
       </div>
-      
+
       <div class="form-section">
         <div class="section-title">3. Lý do lưu trú <span class="required">*</span></div>
         <div class="toggle-group">
@@ -664,7 +673,7 @@
           <button class="toggle-btn" data-reason="Khác">Khác</button>
         </div>
       </div>
-      
+
       <div class="form-section" id="vnExtraFields">
         <div class="section-title">4. Loại cư trú</div>
         <div class="toggle-group">
@@ -673,31 +682,42 @@
           <button class="toggle-btn" data-residence="Địa chỉ khác">Địa chỉ khác</button>
         </div>
       </div>
-      
+
       <div class="form-section">
         <div class="section-title">5. Thông tin thêm (không bắt buộc)</div>
         <div class="form-row">
           <div class="form-group">
+            <label>Giới tính <span style="font-size: 0.7rem; font-weight: normal; color: #70757a;">(Chọn nếu là
+                GPLX)</span></label>
+            <select id="manualGender">
+              <option value="">-- Mặc định --</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>Số điện thoại</label>
             <input type="tel" id="phone" placeholder="09xxxxxxxx">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Ngày check-out</label>
             <input type="date" id="checkoutDate">
           </div>
         </div>
       </div>
-      
+
       <div class="form-section">
         <div class="section-title">6. Chụp ảnh giấy tờ <span class="required">*</span></div>
         <div class="camera-section">
           <div id="cameraError" class="camera-error"></div>
-          
+
           <div class="image-tabs" id="imageTabs">
             <button class="tab-btn active has-image" id="tabFront" data-tab="front">Mặt trước</button>
             <button class="tab-btn no-image" id="tabBack" data-tab="back">Mặt sau</button>
           </div>
-          
+
           <div class="camera-container" id="cameraContainer">
             <video id="video" autoplay playsinline muted></video>
             <img id="preview" alt="Preview">
@@ -707,7 +727,7 @@
               <div class="subtext">CCCD / CMND / Hộ chiếu</div>
             </div>
           </div>
-          
+
           <div class="camera-buttons">
             <button class="btn-camera" id="btnCamera">
               <span>📸</span> Chụp ảnh
@@ -722,30 +742,35 @@
               <span>➕</span> Thêm mặt sau
             </button>
           </div>
-          
+
           <input type="file" id="fileInput" accept="image/*">
 
           <input type="file" id="cameraInput" accept="image/*" capture="environment">
-          
+
           <div class="hint-text" id="hintText">
             ℹ️ Nếu địa chỉ ở mặt sau, hãy thêm ảnh mặt sau
           </div>
-          
+
           <div id="debugInfo" class="debug-info"></div>
         </div>
       </div>
-      
+
       <button class="btn-submit" id="btnSubmit" disabled>
         <span>✅</span> Xác nhận Check-in
       </button>
-      
+
+      <div id="status" class="status" style="margin-top: 16px; margin-bottom: 0;">
+        <span class="status-icon"></span>
+        <div class="status-content"></div>
+      </div>
+
       <div class="result-card" id="resultCard">
         <div class="result-title">
           <span>✅</span> Thông tin đã ghi nhận
         </div>
         <div id="resultContent"></div>
       </div>
-      
+
       <div class="quick-actions">
         <button class="btn-quick" id="btnNewCheckin">
           ➕ Check-in khách mới
@@ -763,27 +788,27 @@
         4. Import file vào hệ thống ASM Công an
       </div>
     </div>
-    
+
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.5 (2-Image Support)<br>
+      Light Hotel © 2025 | Version 2.4.6 (ASM Logic Support)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
-  
+
   <canvas id="canvas" style="display: none;"></canvas>
-  
+
   <script>
     // ========== CẤU HÌNH ==========
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeJL14Bvg3atDYv7uazYe-vo4_kp4djrfGaY_IM6lKkQUsbbTLjYQg9-GdkX2p9gOOg/exec';
     // Debug mode - set true để xem thông tin debug
     const DEBUG_MODE = true;
-    
+
     // ========== STATE ==========
     let selectedRoom = '';
     let isVietnamese = true;
     let lyDoLuuTru = 'Du lịch';
     let loaiCuTru = 'Thường trú';
-    
+
     // === MỚI: Hỗ trợ 2 ảnh ===
     let capturedImages = {
       front: null,    // Ảnh mặt trước (base64)
@@ -791,11 +816,11 @@
     };
     let imageSource = null;   // 'camera' hoặc 'gallery' - nguồn ảnh đầu tiên
     let activeTab = 'front';  // Tab đang hiển thị: 'front' hoặc 'back'
-    
+
     let stream = null;
     let cameraActive = false;
     let isMobile = false;
-    
+
     // ========== ELEMENTS ==========
     const video = document.getElementById('video');
     const preview = document.getElementById('preview');
@@ -814,21 +839,21 @@
     const vnExtraFields = document.getElementById('vnExtraFields');
     const debugInfo = document.getElementById('debugInfo');
     const exportInfo = document.getElementById('exportInfo');
-    
+
     // === MỚI: Elements cho 2 ảnh ===
     const imageTabs = document.getElementById('imageTabs');
     const tabFront = document.getElementById('tabFront');
     const tabBack = document.getElementById('tabBack');
     const btnAddBack = document.getElementById('btnAddBack');
     const hintText = document.getElementById('hintText');
-    
+
     // ========== DETECT DEVICE ==========
     function detectDevice() {
       const ua = navigator.userAgent;
       isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
       return isMobile;
     }
-    
+
     // ========== DEBUG ==========
     function debug(message) {
       if (DEBUG_MODE) {
@@ -842,29 +867,29 @@
         debugInfo.classList.add('show');
       }
     }
-    
+
     // ========== CAMERA - MOBILE: Dùng input capture ==========
     function openCameraOnMobile() {
       debug('Mobile: Mở camera qua input capture');
       cameraInput.click();
     }
-    
+
     // ========== CAMERA - DESKTOP: Dùng getUserMedia ==========
     async function startCameraOnDesktop() {
       debug('Desktop: Đang khởi động camera stream...');
       cameraError.classList.remove('show');
-      
+
       // Kiểm tra hỗ trợ
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         showCameraError('Trình duyệt không hỗ trợ camera. Vui lòng dùng nút "Thư viện" để chọn ảnh.');
         debug('mediaDevices không được hỗ trợ');
         return false;
       }
-      
+
       try {
         // Dừng stream cũ nếu có
         stopCamera();
-        
+
         const constraints = {
           video: {
             facingMode: { ideal: 'environment' },
@@ -873,15 +898,15 @@
           },
           audio: false
         };
-        
+
         debug('Requesting camera...');
-        
+
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+
         debug('Camera stream nhận được!');
-        
+
         video.srcObject = stream;
-        
+
         // Đợi video sẵn sàng
         await new Promise((resolve, reject) => {
           video.onloadedmetadata = () => {
@@ -894,29 +919,29 @@
           };
           setTimeout(() => reject(new Error('Video load timeout')), 5000);
         });
-        
+
         await video.play();
         debug(`Video đang phát: ${video.videoWidth}x${video.videoHeight}`);
-        
+
         // Hiển thị video
         video.style.display = 'block';
         preview.style.display = 'none';
         placeholder.style.display = 'none';
-        
+
         // Đổi nút thành "Chụp"
         btnCamera.innerHTML = '<span>📸</span> CHỤP';
         btnCamera.onclick = captureFromCamera;
         btnGallery.style.display = 'none';
         btnRetake.style.display = 'none';
-        
+
         cameraActive = true;
         return true;
-        
+
       } catch (err) {
         debug('Lỗi camera: ' + err.name + ' - ' + err.message);
-        
+
         let errorMessage = '';
-        switch(err.name) {
+        switch (err.name) {
           case 'NotAllowedError':
           case 'PermissionDeniedError':
             errorMessage = 'Quyền camera bị từ chối. Vui lòng:\n1. Nhấn vào 🔒 trên thanh địa chỉ\n2. Cho phép quyền Camera\n3. Tải lại trang';
@@ -935,46 +960,46 @@
           default:
             errorMessage = `Lỗi camera: ${err.message}. Vui lòng dùng nút "Thư viện" để chọn ảnh.`;
         }
-        
+
         showCameraError(errorMessage);
         return false;
       }
     }
-    
+
     // Fallback với constraints đơn giản
     async function startCameraFallback() {
       debug('Thử camera fallback...');
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        
+
         video.srcObject = stream;
         await video.play();
-        
+
         video.style.display = 'block';
         preview.style.display = 'none';
         placeholder.style.display = 'none';
-        
+
         btnCamera.innerHTML = '<span>📸</span> CHỤP';
         btnCamera.onclick = captureFromCamera;
         btnGallery.style.display = 'none';
-        
+
         cameraActive = true;
         debug('Camera fallback thành công!');
         return true;
-        
+
       } catch (err) {
         debug('Camera fallback thất bại: ' + err.message);
         showCameraError('Không thể mở camera. Vui lòng dùng nút "Thư viện" để chọn ảnh.');
         return false;
       }
     }
-    
+
     function showCameraError(message) {
       cameraError.textContent = message;
       cameraError.classList.add('show');
       cameraActive = false;
     }
-    
+
     function stopCamera() {
       if (stream) {
         stream.getTracks().forEach(track => {
@@ -986,32 +1011,32 @@
       video.srcObject = null;
       cameraActive = false;
     }
-    
+
     function captureFromCamera() {
       if (!cameraActive) {
         debug('Camera không active, không thể chụp');
         showCameraError('Camera chưa sẵn sàng. Vui lòng thử lại.');
         return;
       }
-      
+
       debug('Chụp ảnh từ camera stream...');
-      
+
       // Kiểm tra video dimensions
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         debug('Video dimensions = 0, waiting...');
         showCameraError('Camera chưa sẵn sàng. Vui lòng đợi 1-2 giây rồi thử lại.');
         return;
       }
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
+
       const capturedImage = canvas.toDataURL('image/jpeg', 0.85);
       debug('Ảnh đã chụp, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
-      
+
       // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
       if (!capturedImages.front) {
         imageSource = 'camera';
@@ -1021,60 +1046,60 @@
       showPreview(capturedImage);
       stopCamera();
     }
-    
+
     function showPreview(imageData) {
       // Lưu ảnh vào đúng slot (front hoặc back)
       capturedImages[activeTab] = imageData;
-      
+
       preview.src = imageData;
       preview.style.display = 'block';
       video.style.display = 'none';
       placeholder.style.display = 'none';
-      
+
       // Update UI
       updateTabsUI();
       updateButtonsForTab();
-      
+
       cameraError.classList.remove('show');
       updateSubmitButton();
       debug('Lưu ảnh vào tab: ' + activeTab);
     }
-    
+
     function resetCamera() {
       // Reset ảnh của tab hiện tại
       capturedImages[activeTab] = null;
-      
+
       // Nếu reset tab front, cũng reset tab back
       if (activeTab === 'front') {
         capturedImages.back = null;
         imageSource = null;
       }
-      
+
       stopCamera();
-      
+
       preview.style.display = 'none';
       video.style.display = 'none';
       placeholder.style.display = 'flex';
-      
+
       btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
       btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
-      
+
       // Update UI
       updateTabsUI();
       updateButtonsForTab();
-      
+
       // Nếu không còn ảnh nào, reset về tab front
       if (!capturedImages.front && !capturedImages.back) {
         activeTab = 'front';
         imageTabs.classList.remove('show');
         hintText.classList.remove('hidden');
       }
-      
+
       cameraError.classList.remove('show');
       updateSubmitButton();
       debug('Reset camera UI cho tab: ' + activeTab);
     }
-    
+
     // ========== XỬ LÝ 2 ẢNH (MẶT TRƯỚC + MẶT SAU) ==========
 
     /**
@@ -1082,11 +1107,11 @@
      */
     function switchTab(tab) {
       activeTab = tab;
-      
+
       // Update UI tabs
       tabFront.classList.toggle('active', tab === 'front');
       tabBack.classList.toggle('active', tab === 'back');
-      
+
       // Hiển thị ảnh tương ứng
       const imageToShow = capturedImages[tab];
       if (imageToShow) {
@@ -1097,10 +1122,10 @@
         preview.style.display = 'none';
         placeholder.style.display = 'flex';
       }
-      
+
       // Update nút bấm theo tab
       updateButtonsForTab();
-      
+
       debug('Switched to tab: ' + tab);
     }
 
@@ -1111,13 +1136,13 @@
       const hasCurrentImage = capturedImages[activeTab] !== null;
       const hasFrontImage = capturedImages.front !== null;
       const hasBackImage = capturedImages.back !== null;
-      
+
       if (hasCurrentImage) {
         // Có ảnh ở tab hiện tại
         btnCamera.style.display = 'none';
         btnGallery.style.display = 'none';
         btnRetake.style.display = 'flex';
-        
+
         // Hiển thị nút "Thêm mặt sau" nếu đang ở tab front và chưa có ảnh back
         if (activeTab === 'front' && !hasBackImage) {
           btnAddBack.classList.add('show');
@@ -1131,7 +1156,7 @@
         btnRetake.style.display = 'none';
         btnAddBack.classList.remove('show');
       }
-      
+
       // Ẩn ghi chú khi đã có ảnh back hoặc đang ở tab back
       if (hasBackImage || activeTab === 'back') {
         hintText.classList.add('hidden');
@@ -1146,14 +1171,14 @@
     function updateTabsUI() {
       const hasFront = capturedImages.front !== null;
       const hasBack = capturedImages.back !== null;
-      
+
       // Hiển thị tabs khi có ít nhất 1 ảnh
       if (hasFront || hasBack) {
         imageTabs.classList.add('show');
       } else {
         imageTabs.classList.remove('show');
       }
-      
+
       // Update class cho tabs
       tabFront.classList.toggle('has-image', hasFront);
       tabFront.classList.toggle('no-image', !hasFront);
@@ -1166,10 +1191,10 @@
      */
     function handleAddBackImage() {
       debug('Thêm ảnh mặt sau, nguồn: ' + imageSource);
-      
+
       // Chuyển sang tab back
       switchTab('back');
-      
+
       // Mở camera hoặc gallery tùy theo nguồn ảnh 1
       if (imageSource === 'camera') {
         // Mở camera
@@ -1192,65 +1217,65 @@
       return new Promise((resolve, reject) => {
         const frontBase64 = capturedImages.front;
         const backBase64 = capturedImages.back;
-        
+
         // Nếu chỉ có 1 ảnh, trả về luôn
         if (!backBase64) {
           debug('Chỉ có 1 ảnh, không cần ghép');
           resolve(frontBase64);
           return;
         }
-        
+
         debug('Bắt đầu ghép 2 ảnh...');
-        
+
         const imgFront = new Image();
         const imgBack = new Image();
         let loadedCount = 0;
-        
+
         const onLoad = () => {
           loadedCount++;
           if (loadedCount < 2) return;
-          
+
           // Tính toán kích thước
           // Resize cả 2 về cùng chiều rộng, giữ tỷ lệ
           const targetWidth = Math.max(imgFront.width, imgBack.width);
-          
+
           const frontHeight = (imgFront.height / imgFront.width) * targetWidth;
           const backHeight = (imgBack.height / imgBack.width) * targetWidth;
-          
+
           const totalHeight = frontHeight + backHeight;
-          
+
           debug(`Ghép ảnh: ${targetWidth}x${totalHeight} (front: ${targetWidth}x${frontHeight}, back: ${targetWidth}x${backHeight})`);
-          
+
           // Tạo canvas ghép
           const mergeCanvas = document.createElement('canvas');
           mergeCanvas.width = targetWidth;
           mergeCanvas.height = totalHeight;
-          
+
           const ctx = mergeCanvas.getContext('2d');
-          
+
           // Vẽ ảnh mặt trước ở trên
           ctx.drawImage(imgFront, 0, 0, targetWidth, frontHeight);
-          
+
           // Vẽ ảnh mặt sau ở dưới
           ctx.drawImage(imgBack, 0, frontHeight, targetWidth, backHeight);
-          
+
           // Xuất base64
           const mergedBase64 = mergeCanvas.toDataURL('image/jpeg', 0.85);
           debug('Ghép ảnh thành công, size: ' + Math.round(mergedBase64.length / 1024) + 'KB');
-          
+
           resolve(mergedBase64);
         };
-        
+
         const onError = (err) => {
           debug('Lỗi load ảnh để ghép: ' + err);
           reject(err);
         };
-        
+
         imgFront.onload = onLoad;
         imgBack.onload = onLoad;
         imgFront.onerror = onError;
         imgBack.onerror = onError;
-        
+
         imgFront.src = frontBase64;
         imgBack.src = backBase64;
       });
@@ -1261,16 +1286,16 @@
       debug('Mở thư viện ảnh...');
       fileInput.click();
     }
-    
+
     function handleFileSelect(e) {
       const file = e.target.files[0];
       if (!file) {
         debug('Không có file được chọn');
         return;
       }
-      
+
       debug('File được chọn: ' + file.name + ', size: ' + Math.round(file.size / 1024) + 'KB');
-      
+
       // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
       if (!capturedImages.front) {
         imageSource = 'gallery';
@@ -1282,33 +1307,33 @@
         showCameraError('Vui lòng chọn file ảnh (JPG, PNG...)');
         return;
       }
-      
+
       // Kiểm tra kích thước (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         showCameraError('Ảnh quá lớn (>10MB). Vui lòng chọn ảnh nhỏ hơn.');
         return;
       }
-      
+
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         const capturedImage = event.target.result;
         debug('Ảnh đã load, size: ' + Math.round(capturedImage.length / 1024) + 'KB');
         showPreview(capturedImage);
       };
-      reader.onerror = function() {
+      reader.onerror = function () {
         showCameraError('Không thể đọc file ảnh. Vui lòng thử lại.');
         debug('FileReader error');
       };
       reader.readAsDataURL(file);
-      
+
       // Reset input để có thể chọn lại cùng file
       e.target.value = '';
     }
-    
+
     // ========== CAMERA INPUT (Mobile camera capture) ==========
     function handleCameraCapture(e) {
       debug('Xử lý ảnh từ camera mobile...');
-      
+
       // Lưu nguồn ảnh nếu đây là ảnh đầu tiên
       if (!capturedImages.front) {
         imageSource = 'camera';
@@ -1317,7 +1342,7 @@
 
       handleFileSelect(e);
     }
-    
+
     // ========== ROOM SELECTION ==========
     document.getElementById('roomGrid').addEventListener('click', (e) => {
       if (e.target.classList.contains('room-btn')) {
@@ -1328,7 +1353,7 @@
         updateSubmitButton();
       }
     });
-    
+
     // ========== TOGGLE BUTTONS ==========
     document.querySelectorAll('[data-guest]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1339,7 +1364,7 @@
         debug('Loại khách: ' + (isVietnamese ? 'Việt Nam' : 'Nước ngoài'));
       });
     });
-    
+
     document.querySelectorAll('[data-reason]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
@@ -1348,7 +1373,7 @@
         debug('Lý do: ' + lyDoLuuTru);
       });
     });
-    
+
     document.querySelectorAll('[data-residence]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
@@ -1357,7 +1382,7 @@
         debug('Loại cư trú: ' + loaiCuTru);
       });
     });
-    
+
     // ========== VALIDATION ==========
     function updateSubmitButton() {
       // Chỉ cần có ảnh mặt trước là đủ để submit
@@ -1365,7 +1390,7 @@
       btnSubmit.disabled = !canSubmit;
       debug('Submit button: ' + (canSubmit ? 'enabled' : 'disabled'));
     }
-    
+
     // ========== STATUS ==========
     function showStatus(type, title, message) {
       const icons = {
@@ -1374,7 +1399,7 @@
         error: '❌',
         info: '💡'
       };
-      
+
       statusEl.className = `status show ${type}`;
       statusEl.innerHTML = `
         <span class="status-icon">${icons[type]}</span>
@@ -1384,7 +1409,7 @@
         </div>
       `;
     }
-    
+
     function hideStatus() {
       statusEl.className = 'status';
     }
@@ -1393,20 +1418,20 @@
     function tryReadQRCode(imageData) {
       return new Promise((resolve) => {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
           // Tạo canvas để đọc QR
           const qrCanvas = document.createElement('canvas');
           const ctx = qrCanvas.getContext('2d');
           qrCanvas.width = img.width;
           qrCanvas.height = img.height;
           ctx.drawImage(img, 0, 0);
-          
+
           // Lấy image data
           const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-          
+
           // Đọc QR code
           const code = jsQR(imageData.data, imageData.width, imageData.height);
-          
+
           if (code && code.data) {
             debug('QR Code found: ' + code.data.substring(0, 50) + '...');
             const parsed = parseQRCodeCCCD(code.data);
@@ -1416,7 +1441,7 @@
             resolve(null);
           }
         };
-        img.onerror = function() {
+        img.onerror = function () {
           debug('Error loading image for QR scan');
           resolve(null);
         };
@@ -1430,23 +1455,23 @@
     function parseQRCodeCCCD(qrData) {
       try {
         debug('Raw QR data: ' + qrData);
-        
+
         // Kiểm tra có phải QR CCCD không (bắt đầu bằng số 12 chữ số)
         if (!/^\d{12}\|/.test(qrData)) {
           debug('QR không phải CCCD format (không bắt đầu bằng 12 số)');
           return null;
         }
-        
+
         const parts = qrData.split('|');
         debug('QR parts count: ' + parts.length);
         debug('QR parts: ' + JSON.stringify(parts));
-        
+
         // QR CCCD có 7 trường
         if (parts.length < 6) {
           debug('QR CCCD không đủ phần tử: ' + parts.length + ' (cần ít nhất 6)');
           return null;
         }
-        
+
         // Parse theo format 7 trường CHUẨN QR CCCD Việt Nam
         // Format: SốCCCD|SốCMND|HọTên|NgàySinh|GiớiTính|ĐịaChỉ|NgàyCấp
         const soCCCD = parts[0];              // [0] Số CCCD (12 số)
@@ -1456,35 +1481,35 @@
         const gioiTinh = parts[4];            // [4] Giới tính (Nam/Nữ) ← ĐÃ SỬA
         const diaChiFull = parts[5];          // [5] Địa chỉ thường trú
         const ngayCapRaw = parts[6] || '';    // [6] Ngày cấp CCCD (DDMMYYYY) - optional
-        
+
         debug('Parsed - CCCD: ' + soCCCD + ', CMND: ' + soCMND + ', Tên: ' + hoTen + ', Sinh: ' + ngaySinhRaw + ', GT: ' + gioiTinh);
-        
+
         // Validate: hoTen không được chứa toàn số
         if (/^\d+$/.test(hoTen.replace(/\s/g, ''))) {
           debug('ERROR: hoTen chứa toàn số, có thể parse sai format!');
           return null; // Trả về null để fallback sang AI OCR
         }
-        
+
         // Parse ngày sinh từ DDMMYYYY sang DD/MM/YYYY
         let ngaySinh = '';
         if (ngaySinhRaw && ngaySinhRaw.length === 8 && /^\d{8}$/.test(ngaySinhRaw)) {
-          ngaySinh = ngaySinhRaw.substring(0, 2) + '/' + 
-                     ngaySinhRaw.substring(2, 4) + '/' + 
-                     ngaySinhRaw.substring(4, 8);
+          ngaySinh = ngaySinhRaw.substring(0, 2) + '/' +
+            ngaySinhRaw.substring(2, 4) + '/' +
+            ngaySinhRaw.substring(4, 8);
         }
-        
+
         // Parse ngày cấp từ DDMMYYYY sang DD/MM/YYYY
         let ngayCap = '';
         if (ngayCapRaw && ngayCapRaw.length === 8 && /^\d{8}$/.test(ngayCapRaw)) {
-          ngayCap = ngayCapRaw.substring(0, 2) + '/' + 
-                     ngayCapRaw.substring(2, 4) + '/' + 
-                     ngayCapRaw.substring(4, 8);
+          ngayCap = ngayCapRaw.substring(0, 2) + '/' +
+            ngayCapRaw.substring(2, 4) + '/' +
+            ngayCapRaw.substring(4, 8);
         }
-        
+
         // Parse địa chỉ thành các thành phần
         const addressParts = diaChiFull.split(',').map(p => p.trim());
         let tinh = '', huyen = '', xa = '', chiTiet = '';
-        
+
         if (addressParts.length >= 4) {
           // Format: Chi tiết, Xã, Huyện, Tỉnh
           chiTiet = addressParts.slice(0, -3).join(', ');
@@ -1501,9 +1526,9 @@
         } else {
           tinh = diaChiFull;
         }
-        
+
         debug('QR parsed successfully: ' + hoTen + ' - ' + soCCCD);
-        
+
         return {
           fromQR: true,
           loaiGiayTo: 'CCCD',
@@ -1525,29 +1550,29 @@
         return null;
       }
     }
-    
+
     // ========== HELPERS ==========
     function getTomorrow() {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       return tomorrow.toISOString().split('T')[0];
     }
-    
+
     // ========== SUBMIT ==========
     async function submitCheckin() {
       if (!selectedRoom || !capturedImages.front) {
         showStatus('error', 'Thiếu thông tin', 'Vui lòng chọn phòng và chụp ảnh giấy tờ');
         return;
       }
-      
+
       if (APPS_SCRIPT_URL === 'THAY_URL_WEB_APP_VÀO_ĐÂY') {
         showStatus('error', 'Chưa cấu hình', 'Vui lòng cập nhật APPS_SCRIPT_URL trong code');
         return;
       }
-      
+
       btnSubmit.disabled = true;
       resultCard.classList.remove('show');
-      
+
       // BƯỚC 0: Ghép ảnh nếu có 2 ảnh
       showStatus('loading', 'Đang xử lý...', capturedImages.back ? 'Đang ghép ảnh...' : 'Đang kiểm tra mã QR...');
 
@@ -1559,22 +1584,22 @@
         debug('Lỗi ghép ảnh: ' + err);
         finalImage = capturedImages.front;
       }
-      
+
       // BƯỚC 1: Thử đọc QR Code trước
       showStatus('loading', 'Đang xử lý...', 'Đang kiểm tra mã QR...');
-      
+
       let qrData = null;
       try {
         qrData = await tryReadQRCode(finalImage);
       } catch (e) {
         debug('QR read error: ' + e.message);
       }
-      
+
       // BƯỚC 2: Gửi request với flag useQR
       showStatus('loading', 'Đang xử lý...', qrData ? 'Đã đọc QR, đang xác nhận...' : 'Đang đọc thông tin bằng AI...');
-      
+
       debug('Đang gửi request...');
-      
+
       try {
         const requestBody = {
           action: 'checkin',
@@ -1585,15 +1610,16 @@
           loaiCuTru: loaiCuTru,
           isVietnamese: isVietnamese,
           phone: document.getElementById('phone').value,
+          manualGender: document.getElementById('manualGender').value,
           // Gửi dữ liệu QR nếu có
           qrData: qrData
         };
-        
+
         debug('Request size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
         if (qrData) {
           debug('QR data included: ' + qrData.hoTen);
         }
-        
+
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: {
@@ -1601,24 +1627,24 @@
           },
           body: JSON.stringify(requestBody)
         });
-        
+
         debug('Response status: ' + response.status);
-        
+
         const result = await response.json();
         debug('Response received');
-        
+
         if (result.success) {
           const info = result.data.info;
           const source = result.data.source || 'AI'; // 'QR' hoặc 'AI'
-          
+
           // === MỚI: Hiển thị cảnh báo địa chỉ nếu có ===
           if (result.data.warning) {
             showStatus('info', '⚠️ Cần kiểm tra địa chỉ', result.data.warning);
           } else {
-            showStatus('success', 'Check-in thành công!', 
+            showStatus('success', 'Check-in thành công!',
               `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
           }
-          
+
           resultContent.innerHTML = `
             <div class="result-row">
               <span class="result-label">Họ tên</span>
@@ -1662,12 +1688,12 @@
             </div>
           `;
           resultCard.classList.add('show');
-          
+
         } else {
           showStatus('error', 'Lỗi xử lý', result.error || 'Không thể đọc thông tin. Vui lòng chụp lại ảnh rõ hơn.');
           btnSubmit.disabled = false;
         }
-        
+
       } catch (error) {
         debug('Fetch error: ' + error.message);
         showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server. Kiểm tra mạng và thử lại.');
@@ -1678,75 +1704,75 @@
     // ========== NEW CHECKIN - Reset form cho khách mới ==========
     function newCheckin() {
       debug('=== BẮT ĐẦU RESET FORM CHO KHÁCH MỚI ===');
-      
+
       // 1. Reset ảnh đã chụp
       // Reset ảnh của tab hiện tại
       capturedImages = { front: null, back: null };
       activeTab = 'front';
       imageSource = null;
-      
+
       preview.style.display = 'none';
       video.style.display = 'none';
       placeholder.style.display = 'flex';
-      
+
       // 2. Dừng camera stream nếu đang chạy
       stopCamera();
-      
+
       // 3. Reset camera buttons về trạng thái ban đầu
       btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
       btnCamera.onclick = isMobile ? openCameraOnMobile : startCameraOnDesktop;
-      
+
       updateTabsUI();
       updateButtonsForTab();
       imageTabs.classList.remove('show');
       hintText.classList.remove('hidden');
-      
+
       // 4. Reset room selection (BỎ CHỌN PHÒNG - để người dùng chọn lại)
       selectedRoom = '';
       document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
-      
+
       // 5. Reset các toggle buttons về mặc định
       // Loại khách: Việt Nam
       document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
       document.querySelector('[data-guest="vn"]').classList.add('active');
       isVietnamese = true;
       vnExtraFields.style.display = 'block';
-      
+
       // Lý do lưu trú: Du lịch
       document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
       document.querySelector('[data-reason="Du lịch"]').classList.add('active');
       lyDoLuuTru = 'Du lịch';
-      
+
       // Loại cư trú: Thường trú
       document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
       document.querySelector('[data-residence="Thường trú"]').classList.add('active');
       loaiCuTru = 'Thường trú';
-      
+
       // 6. Reset các trường input
       document.getElementById('phone').value = '';
       document.getElementById('checkoutDate').value = getTomorrow();
-      
+
       // 7. Ẩn kết quả và status cũ
       resultCard.classList.remove('show');
       hideStatus();
       cameraError.classList.remove('show');
       exportInfo.classList.remove('show');
-      
+
       // 8. Disable nút submit (phải chọn lại phòng + ảnh)
       btnSubmit.disabled = true;
-      
+
       // 9. Scroll lên đầu trang
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
       debug('Form đã reset xong - sẵn sàng check-in khách mới');
     }
 
     // ========== EXPORT ASM - Xuất dữ liệu hôm nay ==========
     function exportASM() {
       debug('Đang xuất dữ liệu ASM...');
-      
+
       showStatus('loading', 'Đang xử lý...', 'Đang tạo file xuất ASM...');
-      
+
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: {
@@ -1756,78 +1782,78 @@
           action: 'export_asm'
         })
       })
-      .then(response => response.json())
-      .then(result => {
-        if (result.success) {
-          showStatus('success', 'Xuất ASM thành công!', result.data.message || `Đã xuất ${result.data.count} khách`);
-          exportInfo.classList.add('show');
-        } else {
-          showStatus('error', 'Lỗi xuất ASM', result.error || 'Không thể xuất dữ liệu');
-        }
-      })
-      .catch(error => {
-        debug('Export error: ' + error.message);
-        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
-      });
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            showStatus('success', 'Xuất ASM thành công!', result.data.message || `Đã xuất ${result.data.count} khách`);
+            exportInfo.classList.add('show');
+          } else {
+            showStatus('error', 'Lỗi xuất ASM', result.error || 'Không thể xuất dữ liệu');
+          }
+        })
+        .catch(error => {
+          debug('Export error: ' + error.message);
+          showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server');
+        });
     }
 
     // ========== EVENT LISTENERS ==========
     // Camera button - behavior depends on device
-    btnCamera.addEventListener('click', function() {
+    btnCamera.addEventListener('click', function () {
       if (isMobile) {
         openCameraOnMobile();
       } else {
         startCameraOnDesktop();
       }
     });
-    
+
     btnGallery.addEventListener('click', openGallery);
     btnRetake.addEventListener('click', resetCamera);
     btnSubmit.addEventListener('click', submitCheckin);
-    
+
     // === Event listeners cho tabs và nút thêm mặt sau ===
     tabFront.addEventListener('click', () => switchTab('front'));
     tabBack.addEventListener('click', () => switchTab('back'));
     btnAddBack.addEventListener('click', handleAddBackImage);
 
     // File inputs - mỗi input chỉ xử lý 1 lần
-    fileInput.addEventListener('change', function(e) {
+    fileInput.addEventListener('change', function (e) {
       if (e.target.files && e.target.files[0]) {
         handleFileSelect(e);
       }
     });
 
-    cameraInput.addEventListener('change', function(e) {
+    cameraInput.addEventListener('change', function (e) {
       if (e.target.files && e.target.files[0]) {
         handleCameraCapture(e);
         // Reset để có thể chụp lại
         cameraInput.value = '';
       }
     });
-    
+
     // Quick actions
     document.getElementById('btnNewCheckin').addEventListener('click', newCheckin);
     document.getElementById('btnExportASM').addEventListener('click', exportASM);
-    
+
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
       // Detect device
       detectDevice();
       debug('App khởi động - ' + (isMobile ? 'Mobile' : 'Desktop'));
-      
+
       // Set default checkout date
       document.getElementById('checkoutDate').value = getTomorrow();
-      
+
       // Show device info
       const ua = navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(ua);
       const isAndroid = /Android/.test(ua);
-      document.getElementById('footerDebug').textContent = 
-        (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') + ' | ' + 
+      document.getElementById('footerDebug').textContent =
+        (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') + ' | ' +
         (navigator.mediaDevices ? 'Camera API OK' : 'No Camera API');
-      
+
       debug('mediaDevices: ' + !!navigator.mediaDevices);
-      
+
       // Update camera button text for mobile
       if (isMobile) {
         btnCamera.innerHTML = '<span>📸</span> Chụp ảnh';
@@ -1836,4 +1862,5 @@
     });
   </script>
 </body>
+
 </html>
