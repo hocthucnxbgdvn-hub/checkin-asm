@@ -882,7 +882,7 @@
     </div>
 
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.9 (Address Correction Flow)<br>
+      Light Hotel © 2025 | Version 2.4.10 (Mobile Compatibility Filter)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -1273,10 +1273,10 @@
       }
 
       // Update class cho tabs
-      tabFront.classList.toggle('has-image', hasFront);
-      tabFront.classList.toggle('no-image', !hasFront);
-      tabBack.classList.toggle('has-image', hasBack);
-      tabBack.classList.toggle('no-image', !hasBack);
+      tabFront.className = hasFront ? 'tab-btn has-image' : 'tab-btn no-image';
+      tabBack.className = hasBack ? 'tab-btn has-image' : 'tab-btn no-image';
+      tabFront.classList.add(activeTab === 'front' ? 'active' : 'inactive');
+      tabBack.classList.add(activeTab === 'back' ? 'active' : 'inactive');
     }
 
     /**
@@ -1437,9 +1437,12 @@
     }
 
     // ========== ROOM SELECTION ==========
-    document.getElementById('roomGrid').addEventListener('click', (e) => {
+    document.getElementById('roomGrid').addEventListener('click', function (e) {
       if (e.target.classList.contains('room-btn')) {
-        document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('selected'));
+        var btns = document.querySelectorAll('.room-btn');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].classList.remove('selected');
+        }
         e.target.classList.add('selected');
         selectedRoom = e.target.dataset.room;
         debug('Phòng được chọn: ' + selectedRoom);
@@ -1448,33 +1451,39 @@
     });
 
     // ========== TOGGLE BUTTONS ==========
-    document.querySelectorAll('[data-guest]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-guest]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        isVietnamese = btn.dataset.guest === 'vn';
+    var guestBtns = document.querySelectorAll('[data-guest]');
+    for (var i = 0; i < guestBtns.length; i++) {
+      guestBtns[i].addEventListener('click', function () {
+        var allGuestBtns = document.querySelectorAll('[data-guest]');
+        for (var j = 0; j < allGuestBtns.length; j++) allGuestBtns[j].classList.remove('active');
+        this.classList.add('active');
+        isVietnamese = this.dataset.guest === 'vn';
         vnExtraFields.style.display = isVietnamese ? 'block' : 'none';
         debug('Loại khách: ' + (isVietnamese ? 'Việt Nam' : 'Nước ngoài'));
       });
-    });
+    }
 
-    document.querySelectorAll('[data-reason]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-reason]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        lyDoLuuTru = btn.dataset.reason;
+    var reasonBtns = document.querySelectorAll('[data-reason]');
+    for (var i = 0; i < reasonBtns.length; i++) {
+      reasonBtns[i].addEventListener('click', function () {
+        var allReasonBtns = document.querySelectorAll('[data-reason]');
+        for (var j = 0; j < allReasonBtns.length; j++) allReasonBtns[j].classList.remove('active');
+        this.classList.add('active');
+        lyDoLuuTru = this.dataset.reason;
         debug('Lý do: ' + lyDoLuuTru);
       });
-    });
+    }
 
-    document.querySelectorAll('[data-residence]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-residence]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loaiCuTru = btn.dataset.residence;
+    var residenceBtns = document.querySelectorAll('[data-residence]');
+    for (var i = 0; i < residenceBtns.length; i++) {
+      residenceBtns[i].addEventListener('click', function () {
+        var allResidenceBtns = document.querySelectorAll('[data-residence]');
+        for (var j = 0; j < allResidenceBtns.length; j++) allResidenceBtns[j].classList.remove('active');
+        this.classList.add('active');
+        loaiCuTru = this.dataset.residence;
         debug('Loại cư trú: ' + loaiCuTru);
       });
-    });
+    }
 
     // ========== VALIDATION ==========
     function updateSubmitButton() {
@@ -1711,7 +1720,10 @@
     }
 
     // ========== SUBMIT ==========
-    async function submitCheckin(confirmMode = false, manualData = null) {
+    function submitCheckin(confirmMode, manualData) {
+      if (confirmMode === undefined) confirmMode = false;
+      if (manualData === undefined) manualData = null;
+
       if (!confirmMode && (!selectedRoom || !capturedImages.front)) {
         showStatus('error', 'Thiếu thông tin', 'Vui lòng chọn phòng và chụp ảnh giấy tờ');
         return;
@@ -1721,31 +1733,37 @@
       resultCard.classList.remove('show');
       correctionCard.classList.remove('show');
 
-      let finalImage = pendingFinalImage;
-      let qrData = null;
+      var finalImage = pendingFinalImage;
+      var qrData = null;
 
       if (!confirmMode) {
         showStatus('loading', 'Đang xử lý...', capturedImages.back ? 'Đang ghép ảnh...' : 'Đang chuẩn bị ảnh...');
-        try {
-          finalImage = await mergeImages();
-          finalImage = await preprocessImage(finalImage);
-          pendingFinalImage = finalImage;
-        } catch (err) {
+
+        mergeImages().then(function (img) {
+          return preprocessImage(img);
+        }).then(function (processedImg) {
+          pendingFinalImage = processedImg;
+          finalImage = processedImg;
+
+          showStatus('loading', 'Đang xử lý...', 'Đang quét mã QR...');
+          return tryReadQRCode(finalImage);
+        }).then(function (qr) {
+          qrData = qr;
+          sendRequestToServer();
+        }).catch(function (err) {
           debug('Lỗi xử lý ảnh: ' + err);
           finalImage = capturedImages.front;
           pendingFinalImage = finalImage;
-        }
-
-        showStatus('loading', 'Đang xử lý...', 'Đang quét mã QR...');
-        try {
-          qrData = await tryReadQRCode(finalImage);
-        } catch (e) { debug('QR Error: ' + e); }
+          sendRequestToServer();
+        });
+      } else {
+        sendRequestToServer();
       }
 
-      showStatus('loading', 'Đang gửi dữ liệu...', confirmMode ? 'Đang lưu chỉnh sửa...' : 'Đang phân tích giấy tờ...');
+      function sendRequestToServer() {
+        showStatus('loading', 'Đang gửi dữ liệu...', confirmMode ? 'Đang lưu chỉnh sửa...' : 'Đang phân tích giấy tờ...');
 
-      try {
-        const requestBody = confirmMode ? {
+        var requestBody = confirmMode ? {
           action: 'checkin', confirmMode: true, info: pendingInfo, image: pendingFinalImage,
           manualAddress: manualData, roomNumber: selectedRoom, checkoutDate: document.getElementById('checkoutDate').value,
           lyDoLuuTru: lyDoLuuTru, loaiCuTru: loaiCuTru, isVietnamese: isVietnamese,
@@ -1757,50 +1775,50 @@
           manualGender: document.getElementById('manualGender').value, qrData: qrData
         };
 
-        const response = await fetch(APPS_SCRIPT_URL, {
+        fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(requestBody)
-        });
+        }).then(function (response) {
+          return response.json();
+        }).then(function (result) {
+          if (result.success) {
+            if (result.data.needsCorrection) {
+              hideStatus();
+              pendingInfo = result.data.info;
+              var asm = result.data.asmData;
+              document.getElementById('corrTinh').value = asm.tinhTP || '';
+              document.getElementById('corrHuyen').value = asm.quanHuyen || '';
+              document.getElementById('corrXa').value = asm.phuongXa || '';
+              document.getElementById('corrChiTiet').value = asm.diaChiChiTiet || '';
+              correctionCard.classList.add('show');
+              window.scrollTo({ top: correctionCard.offsetTop - 20, behavior: 'smooth' });
+              btnSubmit.disabled = false;
+              return;
+            }
 
-        const result = await response.json();
+            var info = result.data.info;
+            var source = result.data.source || 'AI';
+            showStatus(result.data.warning ? 'info' : 'success',
+              result.data.warning ? '⚠️ Cần kiểm tra lại' : 'Check-in thành công!',
+              result.data.warning || 'Khách ' + info.hoTen + ' đã được ghi nhận');
 
-        if (result.success) {
-          if (result.data.needsCorrection) {
-            hideStatus();
-            pendingInfo = result.data.info;
-            const asm = result.data.asmData;
-            document.getElementById('corrTinh').value = asm.tinhTP || '';
-            document.getElementById('corrHuyen').value = asm.quanHuyen || '';
-            document.getElementById('corrXa').value = asm.phuongXa || '';
-            document.getElementById('corrChiTiet').value = asm.diaChiChiTiet || '';
-            correctionCard.classList.add('show');
-            window.scrollTo({ top: correctionCard.offsetTop - 20, behavior: 'smooth' });
+            resultContent.innerHTML =
+              '<div class="result-row"><span class="result-label">Họ tên</span><span class="result-value">' + (info.hoTen || '-') + '</span></div>' +
+              '<div class="result-row"><span class="result-label">Số giấy tờ</span><span class="result-value">' + (info.soGiayTo || '-') + '</span></div>' +
+              '<div class="result-row"><span class="result-label">Phòng</span><span class="result-value">' + (info.tenPhong || '-') + '</span></div>' +
+              '<div class="result-row"><span class="result-label">Nguồn</span><span class="result-value">' + source + '</span></div>';
+
+            resultCard.classList.add('show');
             btnSubmit.disabled = false;
-            return;
+          } else {
+            showStatus('error', 'Lỗi xử lý', result.error || 'Thử lại sau');
+            btnSubmit.disabled = false;
           }
-
-          const info = result.data.info;
-          const source = result.data.source || 'AI';
-          showStatus(result.data.warning ? 'info' : 'success',
-            result.data.warning ? '⚠️ Cần kiểm tra lại' : 'Check-in thành công!',
-            result.data.warning || `Khách ${info.hoTen} đã được ghi nhận`);
-
-          resultContent.innerHTML = `
-            <div class="result-row"><span class="result-label">Họ tên</span><span class="result-value">${info.hoTen || '-'}</span></div>
-            <div class="result-row"><span class="result-label">Số giấy tờ</span><span class="result-value">${info.soGiayTo || '-'}</span></div>
-            <div class="result-row"><span class="result-label">Phòng</span><span class="result-value">${info.tenPhong || '-'}</span></div>
-            <div class="result-row"><span class="result-label">Nguồn</span><span class="result-value">${source}</span></div>
-          `;
-          resultCard.classList.add('show');
+        }).catch(function (error) {
+          showStatus('error', 'Lỗi kết nối', error.message);
           btnSubmit.disabled = false;
-        } else {
-          showStatus('error', 'Lỗi xử lý', result.error || 'Thử lại sau');
-          btnSubmit.disabled = false;
-        }
-      } catch (error) {
-        showStatus('error', 'Lỗi kết nối', error.message);
-        btnSubmit.disabled = false;
+        });
       }
     }
 
@@ -1923,13 +1941,13 @@
 
     btnGallery.addEventListener('click', openGallery);
     btnRetake.addEventListener('click', resetCamera);
-    btnSubmit.addEventListener('click', () => submitCheckin());
-    btnConfirmCorrection.addEventListener('click', () => handleCorrection(false));
-    btnSkipCorrection.addEventListener('click', () => handleCorrection(true));
+    btnSubmit.addEventListener('click', function () { submitCheckin(); });
+    btnConfirmCorrection.addEventListener('click', function () { handleCorrection(false); });
+    btnSkipCorrection.addEventListener('click', function () { handleCorrection(true); });
 
-    // === Event listeners cho tabs và nút thêm mặt sau ===
-    tabFront.addEventListener('click', () => switchTab('front'));
-    tabBack.addEventListener('click', () => switchTab('back'));
+    // === Cải thiện tabs bằng for loop thay forEach ===
+    tabFront.addEventListener('click', function () { switchTab('front'); });
+    tabBack.addEventListener('click', function () { switchTab('back'); });
     btnAddBack.addEventListener('click', handleAddBackImage);
 
     // File inputs - mỗi input chỉ xử lý 1 lần
@@ -1952,7 +1970,7 @@
     document.getElementById('btnExportASM').addEventListener('click', exportASM);
 
     // ========== INIT ==========
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
       // Detect device
       detectDevice();
       debug('App khởi động - ' + (isMobile ? 'Mobile' : 'Desktop'));
@@ -1961,9 +1979,9 @@
       document.getElementById('checkoutDate').value = getTomorrow();
 
       // Show device info
-      const ua = navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(ua);
-      const isAndroid = /Android/.test(ua);
+      var ua = navigator.userAgent;
+      var isIOS = /iPad|iPhone|iPod/.test(ua);
+      var isAndroid = /Android/.test(ua);
       document.getElementById('footerDebug').textContent =
         (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') + ' | ' +
         (navigator.mediaDevices ? 'Camera API OK' : 'No Camera API');
