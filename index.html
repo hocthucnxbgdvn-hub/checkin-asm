@@ -622,6 +622,83 @@
     .hint-text.hidden {
       display: none;
     }
+
+    /* Correction Card */
+    .correction-card {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .correction-card.show {
+      display: block;
+    }
+
+    .correction-title {
+      font-weight: 600;
+      color: #795548;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .correction-fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .correction-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .correction-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #5f6368;
+    }
+
+    .correction-group input {
+      padding: 10px;
+      border: 1px solid #ffe082;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: white;
+    }
+
+    .correction-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn-confirm {
+      flex: 2;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-skip {
+      flex: 1;
+      background: white;
+      color: #5f6368;
+      border: 1px solid #dadce0;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -637,7 +714,6 @@
       <div class="form-section">
         <div class="section-title">1. Chọn phòng <span class="required">*</span></div>
         <div class="room-grid" id="roomGrid">
-          <button class="room-btn" data-room="201">201</button>
           <button class="room-btn" data-room="301">301</button>
           <button class="room-btn" data-room="302">302</button>
           <button class="room-btn" data-room="303">303</button>
@@ -771,6 +847,22 @@
         <div id="resultContent"></div>
       </div>
 
+      <div class="correction-card" id="correctionCard">
+        <div class="correction-title"><span>📍</span> Kiểm tra & Sửa địa chỉ</div>
+        <p style="font-size: 0.8rem; color: #5f6368; margin-bottom: 12px;">Địa chỉ chưa khớp từ điển. Vui lòng kiểm tra
+          và sửa lại nếu AI đọc sai:</p>
+        <div class="correction-fields">
+          <div class="correction-group"><label>Tỉnh / Thành phố</label><input type="text" id="corrTinh"></div>
+          <div class="correction-group"><label>Quận / Huyện</label><input type="text" id="corrHuyen"></div>
+          <div class="correction-group"><label>Phường / Xã</label><input type="text" id="corrXa"></div>
+          <div class="correction-group"><label>Địa chỉ chi tiết</label><input type="text" id="corrChiTiet"></div>
+        </div>
+        <div class="correction-buttons">
+          <button class="btn-confirm" id="btnConfirmCorrection">Sửa & Xác nhận</button>
+          <button class="btn-skip" id="btnSkipCorrection">Giữ nguyên</button>
+        </div>
+      </div>
+
       <div class="quick-actions">
         <button class="btn-quick" id="btnNewCheckin">
           ➕ Check-in khách mới
@@ -790,7 +882,7 @@
     </div>
 
     <div class="footer">
-      Light Hotel © 2025 | Version 2.4.8 (Smart Address & Model Swap)<br>
+      Light Hotel © 2025 | Version 2.4.9 (Address Correction Flow)<br>
       <span id="footerDebug" style="font-size: 0.65rem; color: #bdc1c6;"></span>
     </div>
   </div>
@@ -811,11 +903,12 @@
 
     // === MỚI: Hỗ trợ 2 ảnh ===
     let capturedImages = {
-      front: null,    // Ảnh mặt trước (base64)
-      back: null      // Ảnh mặt sau (base64) - có thể null
+      front: null, back: null
     };
-    let imageSource = null;   // 'camera' hoặc 'gallery' - nguồn ảnh đầu tiên
-    let activeTab = 'front';  // Tab đang hiển thị: 'front' hoặc 'back'
+    let imageSource = null;
+    let activeTab = 'front';
+    let pendingInfo = null;       // Lưu info AI đọc được
+    let pendingFinalImage = null; // Lưu ảnh đã xử lý/ghép
 
     let stream = null;
     let cameraActive = false;
@@ -1618,148 +1711,107 @@
     }
 
     // ========== SUBMIT ==========
-    async function submitCheckin() {
-      if (!selectedRoom || !capturedImages.front) {
+    async function submitCheckin(confirmMode = false, manualData = null) {
+      if (!confirmMode && (!selectedRoom || !capturedImages.front)) {
         showStatus('error', 'Thiếu thông tin', 'Vui lòng chọn phòng và chụp ảnh giấy tờ');
-        return;
-      }
-
-      if (APPS_SCRIPT_URL === 'THAY_URL_WEB_APP_VÀO_ĐÂY') {
-        showStatus('error', 'Chưa cấu hình', 'Vui lòng cập nhật APPS_SCRIPT_URL trong code');
         return;
       }
 
       btnSubmit.disabled = true;
       resultCard.classList.remove('show');
+      correctionCard.classList.remove('show');
 
-      // BƯỚC 0: Ghép ảnh nếu có 2 ảnh
-      showStatus('loading', 'Đang xử lý...', capturedImages.back ? 'Đang ghép ảnh...' : 'Đang kiểm tra mã QR...');
-
-      let finalImage;
-      try {
-        finalImage = await mergeImages();
-        // === MỚI: Xử lý tăng cường ảnh ===
-        finalImage = await preprocessImage(finalImage);
-        debug('Ảnh cuối cùng size: ' + Math.round(finalImage.length / 1024) + 'KB');
-      } catch (err) {
-        debug('Lỗi ghép/xử lý ảnh: ' + err);
-        finalImage = capturedImages.front;
-      }
-
-      // BƯỚC 1: Thử đọc QR Code trước
-      showStatus('loading', 'Đang xử lý...', 'Đang kiểm tra mã QR...');
-
+      let finalImage = pendingFinalImage;
       let qrData = null;
-      try {
-        qrData = await tryReadQRCode(finalImage);
-      } catch (e) {
-        debug('QR read error: ' + e.message);
+
+      if (!confirmMode) {
+        showStatus('loading', 'Đang xử lý...', capturedImages.back ? 'Đang ghép ảnh...' : 'Đang chuẩn bị ảnh...');
+        try {
+          finalImage = await mergeImages();
+          finalImage = await preprocessImage(finalImage);
+          pendingFinalImage = finalImage;
+        } catch (err) {
+          debug('Lỗi xử lý ảnh: ' + err);
+          finalImage = capturedImages.front;
+          pendingFinalImage = finalImage;
+        }
+
+        showStatus('loading', 'Đang xử lý...', 'Đang quét mã QR...');
+        try {
+          qrData = await tryReadQRCode(finalImage);
+        } catch (e) { debug('QR Error: ' + e); }
       }
 
-      // BƯỚC 2: Gửi request với flag useQR
-      showStatus('loading', 'Đang xử lý...', qrData ? 'Đã đọc QR, đang xác nhận...' : 'Đang đọc thông tin bằng AI...');
-
-      debug('Đang gửi request...');
+      showStatus('loading', 'Đang gửi dữ liệu...', confirmMode ? 'Đang lưu chỉnh sửa...' : 'Đang phân tích giấy tờ...');
 
       try {
-        const requestBody = {
-          action: 'checkin',
-          image: finalImage,
-          roomNumber: selectedRoom,
-          checkoutDate: document.getElementById('checkoutDate').value,
-          lyDoLuuTru: lyDoLuuTru,
-          loaiCuTru: loaiCuTru,
-          isVietnamese: isVietnamese,
-          phone: document.getElementById('phone').value,
-          manualGender: document.getElementById('manualGender').value,
-          // Gửi dữ liệu QR nếu có
-          qrData: qrData
+        const requestBody = confirmMode ? {
+          action: 'checkin', confirmMode: true, info: pendingInfo, image: pendingFinalImage,
+          manualAddress: manualData, roomNumber: selectedRoom, checkoutDate: document.getElementById('checkoutDate').value,
+          lyDoLuuTru: lyDoLuuTru, loaiCuTru: loaiCuTru, isVietnamese: isVietnamese,
+          phone: document.getElementById('phone').value, manualGender: document.getElementById('manualGender').value
+        } : {
+          action: 'checkin', image: finalImage, roomNumber: selectedRoom,
+          checkoutDate: document.getElementById('checkoutDate').value, lyDoLuuTru: lyDoLuuTru,
+          loaiCuTru: loaiCuTru, isVietnamese: isVietnamese, phone: document.getElementById('phone').value,
+          manualGender: document.getElementById('manualGender').value, qrData: qrData
         };
-
-        debug('Request size: ' + Math.round(JSON.stringify(requestBody).length / 1024) + 'KB');
-        if (qrData) {
-          debug('QR data included: ' + qrData.hoTen);
-        }
 
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(requestBody)
         });
 
-        debug('Response status: ' + response.status);
-
         const result = await response.json();
-        debug('Response received');
 
         if (result.success) {
-          const info = result.data.info;
-          const source = result.data.source || 'AI'; // 'QR' hoặc 'AI'
-
-          // === MỚI: Hiển thị cảnh báo địa chỉ nếu có (Kể cả khi thành công) ===
-          if (result.data.warning) {
-            showStatus('info', '⚠️ Cần kiểm tra lại', result.data.warning);
-          } else {
-            showStatus('success', 'Check-in thành công!',
-              `Khách ${info.hoTen} đã được ghi nhận` + (source === 'QR' ? ' (từ QR)' : ''));
+          if (result.data.needsCorrection) {
+            hideStatus();
+            pendingInfo = result.data.info;
+            const asm = result.data.asmData;
+            document.getElementById('corrTinh').value = asm.tinhTP || '';
+            document.getElementById('corrHuyen').value = asm.quanHuyen || '';
+            document.getElementById('corrXa').value = asm.phuongXa || '';
+            document.getElementById('corrChiTiet').value = asm.diaChiChiTiet || '';
+            correctionCard.classList.add('show');
+            window.scrollTo({ top: correctionCard.offsetTop - 20, behavior: 'smooth' });
+            btnSubmit.disabled = false;
+            return;
           }
 
+          const info = result.data.info;
+          const source = result.data.source || 'AI';
+          showStatus(result.data.warning ? 'info' : 'success',
+            result.data.warning ? '⚠️ Cần kiểm tra lại' : 'Check-in thành công!',
+            result.data.warning || `Khách ${info.hoTen} đã được ghi nhận`);
+
           resultContent.innerHTML = `
-            <div class="result-row">
-              <span class="result-label">Họ tên</span>
-              <span class="result-value">${info.hoTen || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Ngày sinh</span>
-              <span class="result-value">${info.ngaySinh || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Giới tính</span>
-              <span class="result-value">${info.gioiTinh || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Quốc tịch</span>
-              <span class="result-value">${info.quocTich || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Loại giấy tờ</span>
-              <span class="result-value">${info.loaiGiayTo || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Số giấy tờ</span>
-              <span class="result-value">${info.soGiayTo || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Phòng</span>
-              <span class="result-value">${info.tenPhong || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Check-in</span>
-              <span class="result-value">${info.thoiGianTu || '-'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Nguồn dữ liệu</span>
-              <span class="result-value">${source === 'QR' ? '📱 QR Code' : '🤖 AI OCR'}</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">STT</span>
-              <span class="result-value">#${result.data.stt}</span>
-            </div>
+            <div class="result-row"><span class="result-label">Họ tên</span><span class="result-value">${info.hoTen || '-'}</span></div>
+            <div class="result-row"><span class="result-label">Số giấy tờ</span><span class="result-value">${info.soGiayTo || '-'}</span></div>
+            <div class="result-row"><span class="result-label">Phòng</span><span class="result-value">${info.tenPhong || '-'}</span></div>
+            <div class="result-row"><span class="result-label">Nguồn</span><span class="result-value">${source}</span></div>
           `;
           resultCard.classList.add('show');
-
+          btnSubmit.disabled = false;
         } else {
-          showStatus('error', 'Lỗi xử lý', result.error || 'Không thể đọc thông tin. Vui lòng chụp lại ảnh rõ hơn.');
+          showStatus('error', 'Lỗi xử lý', result.error || 'Thử lại sau');
           btnSubmit.disabled = false;
         }
-
       } catch (error) {
-        debug('Fetch error: ' + error.message);
-        showStatus('error', 'Lỗi kết nối', 'Không thể kết nối server. Kiểm tra mạng và thử lại.');
+        showStatus('error', 'Lỗi kết nối', error.message);
         btnSubmit.disabled = false;
       }
+    }
+
+    function handleCorrection(isSkip = false) {
+      const manualData = isSkip ? null : {
+        tinh: document.getElementById('corrTinh').value,
+        huyen: document.getElementById('corrHuyen').value,
+        xa: document.getElementById('corrXa').value,
+        chiTiet: document.getElementById('corrChiTiet').value
+      };
+      submitCheckin(true, manualData);
     }
 
     // ========== NEW CHECKIN - Reset form cho khách mới ==========
@@ -1815,6 +1867,7 @@
 
       // 7. Ẩn kết quả và status cũ
       resultCard.classList.remove('show');
+      correctionCard.classList.remove('show');
       hideStatus();
       cameraError.classList.remove('show');
       exportInfo.classList.remove('show');
@@ -1870,7 +1923,9 @@
 
     btnGallery.addEventListener('click', openGallery);
     btnRetake.addEventListener('click', resetCamera);
-    btnSubmit.addEventListener('click', submitCheckin);
+    btnSubmit.addEventListener('click', () => submitCheckin());
+    btnConfirmCorrection.addEventListener('click', () => handleCorrection(false));
+    btnSkipCorrection.addEventListener('click', () => handleCorrection(true));
 
     // === Event listeners cho tabs và nút thêm mặt sau ===
     tabFront.addEventListener('click', () => switchTab('front'));
